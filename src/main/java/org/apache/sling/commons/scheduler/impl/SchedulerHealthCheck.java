@@ -64,10 +64,10 @@ public class SchedulerHealthCheck implements HealthCheck {
     public @interface Config {
         @AttributeDefinition(name = "Acceptable Duration Millis", description = "Maximum a job should take (in millis) for it to be acceptable. "
                 + "Best to set this equal or higher to org.apache.sling.commons.scheduler.impl.QuartzScheduler.slowThresholdMillis")
-        long max_quartzJob_duration_acceptable() default DEFAULT_MAX_QUARTZJOB_DURATION_ACCCEPTABLE;
+        long max_quartzJob_duration_acceptable() default DEFAULT_MAX_QUARTZJOB_DURATION_ACCEPTABLE;
     }
 
-    private static final long DEFAULT_MAX_QUARTZJOB_DURATION_ACCCEPTABLE = 60000;
+    private static final long DEFAULT_MAX_QUARTZJOB_DURATION_ACCEPTABLE = 60000;
     private long maxQuartzJobDurationAcceptable;
 
     @Activate
