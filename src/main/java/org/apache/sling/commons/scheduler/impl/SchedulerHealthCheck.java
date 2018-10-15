@@ -51,7 +51,7 @@ import com.codahale.metrics.MetricRegistry;
  */
 @Component(service = HealthCheck.class, property = { Constants.SERVICE_VENDOR + "=The Apache Software Foundation",
         HealthCheck.NAME + "=Scheduler Health Check",
-        HealthCheck.MBEAN_NAME + "=slingCommonsSchedulerHealthCheck" }, immediate = true)
+        HealthCheck.MBEAN_NAME + "=slingCommonsSchedulerHealthCheck" })
 @Designate(ocd = SchedulerHealthCheck.Config.class)
 public class SchedulerHealthCheck implements HealthCheck {
 
