@@ -94,7 +94,7 @@
                             org.apache.sling.hc.util
                         </DynamicImport-Package>
                         <Embed-Dependency>
-                            quartz
+                            quartz;inline=true
                         </Embed-Dependency>
                     </instructions>
                 </configuration>
