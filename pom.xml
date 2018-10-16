@@ -81,6 +81,7 @@
                             !org.terracotta.toolkit.store,
                             !weblogic.jdbc.jts,
                             !weblogic.jdbc.vendor.oracle,
+                            !javax.xml.bind,
                             org.apache.sling.discovery;resolution:=optional,
                             org.apache.sling.settings;resolution:=optional,
                             org.apache.sling.hc.api;resolution:=optional,
