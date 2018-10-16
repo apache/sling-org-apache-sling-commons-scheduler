@@ -88,15 +88,20 @@
                             org.apache.sling.hc.util;resolution:=optional,
                             *                        
                         </Import-Package>
+                        <Export-Package>
+                             org.apache.sling.commons.scheduler
+                        </Export-Package>
                         <DynamicImport-Package>
                             org.apache.sling.discovery;version="[1.0,2)",
                             org.apache.sling.settings;version="[1.0,2)",
                             org.apache.sling.hc.api,
                             org.apache.sling.hc.util
                         </DynamicImport-Package>
-                        <Embed-Dependency>
-                            quartz;inline=true
-                        </Embed-Dependency>
+                        <Private-Package>
+                            org.apache.sling.commons.scheduler.*,
+                            org.quartz.*;-split-package:=merge-first,
+                            org.terracotta.*
+                        </Private-Package>
                     </instructions>
                 </configuration>
             </plugin>
