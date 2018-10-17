@@ -225,10 +225,12 @@ public class PropertySettingJobFactory extends SimpleJobFactory {
     
     private java.lang.reflect.Method getSetMethod(String name,
             Class clazz) {
-        for (int i = 0; i < clazz.getDeclaredMethods().length; i++) {
-            java.lang.reflect.Method wMeth = clazz.getDeclaredMethods()[i];
+        java.lang.reflect.Method[] methods = clazz.getMethods();
+
+        for (int i = 0; i < methods.length; i++) {
+            java.lang.reflect.Method wMeth = methods[i];
         
-            if(wMeth == null) {
+            if(java.lang.reflect.Modifier.isStatic(wMeth.getModifiers())) {
                 continue;
             }
             
