@@ -16,13 +16,8 @@
  */
 package org.apache.sling.commons.scheduler.impl;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -45,7 +40,7 @@ import com.codahale.metrics.MetricRegistry;
         property = {
                 Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
         }
-    )
+)
 /**
  * This service creates gauges for getting how long the oldest running job is
  * already running.
@@ -65,6 +60,8 @@ public class GaugesSupport {
 
     @Reference
     private MetricRegistry metricRegistry;
+
+    private final List<String> registeredGaugeNameList = new LinkedList<>();
 
     @SuppressWarnings("rawtypes")
     private final class TemporaryGauge implements Gauge {
@@ -157,10 +154,10 @@ public class GaugesSupport {
                     if (active) {
                         cleanupTemporaryGauges();
                     } // if the GaugesSupport isn't active anymore it is so
-                      // because
-                      // the QuartzScheduler was deactivated - which means we
-                      // don't
-                      // have to unregister the periodic job here.
+                    // because
+                    // the QuartzScheduler was deactivated - which means we
+                    // don't
+                    // have to unregister the periodic job here.
                     else {
                         logger.debug("run: late executed periodic cleanup job - ignoring");
                     }
@@ -214,9 +211,9 @@ public class GaugesSupport {
 
     @SuppressWarnings("rawtypes")
     private void createGauge(final ConfigHolder configHolder,
-            final String tpName,
-            final String filterName,
-            final String gaugeName) {
+                             final String tpName,
+                             final String filterName,
+                             final String gaugeName) {
         final Gauge gauge = new Gauge() {
             @Override
             public Long getValue() {
@@ -227,12 +224,20 @@ public class GaugesSupport {
             }
         };
         logger.debug("createGauge: registering gauge : " + gaugeName);
-        this.metricRegistry.register(gaugeName, gauge);
+        try {
+            this.metricRegistry.register(gaugeName, gauge);
+        } catch (IllegalArgumentException e) {
+            this.metricRegistry.remove(gaugeName);
+            logger.warn("createGauge: re-registering gauge : " + gaugeName);
+            this.metricRegistry.register(gaugeName, gauge);
+        }
+        logger.info("createGauge: registered gauge : " + gaugeName);
+        registeredGaugeNameList.add(gaugeName);
     }
 
     private Long getOldestRunningJobMillis(final ConfigHolder configHolder,
-            final String threadPoolNameOrNull,
-            final String filterNameOrNull) {
+                                           final String threadPoolNameOrNull,
+                                           final String filterNameOrNull) {
         final QuartzScheduler localQuartzScheduler = quartzScheduler;
         if (localQuartzScheduler == null) {
             // could happen during deactivation
@@ -268,8 +273,8 @@ public class GaugesSupport {
     }
 
     private Date getOldestRunningJobDate(final ConfigHolder configHolder,
-            final SchedulerProxy schedulerProxy,
-            final String filterNameOrNull) {
+                                         final SchedulerProxy schedulerProxy,
+                                         final String filterNameOrNull) {
         if (schedulerProxy == null) {
             return null;
         }
@@ -387,6 +392,10 @@ public class GaugesSupport {
         for (TemporaryGauge tempGauge : localTemporaryGauges.values()) {
             logger.debug("unregisterGauges: unregistering temporary gauge for slow job : " + tempGauge.gaugeName);
             tempGauge.unregister();
+        }
+
+        for (String registeredGaugeName : registeredGaugeNameList) {
+            metricRegistry.remove(registeredGaugeName);
         }
     }
 
