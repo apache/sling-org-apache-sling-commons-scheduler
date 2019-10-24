@@ -19,6 +19,7 @@ package org.apache.sling.commons.scheduler.impl;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,6 +66,8 @@ public class GaugesSupport {
 
     @Reference
     private MetricRegistry metricRegistry;
+
+    private final List<String> registeredGaugeNameList = new LinkedList<>();
 
     @SuppressWarnings("rawtypes")
     private final class TemporaryGauge implements Gauge {
@@ -228,6 +231,7 @@ public class GaugesSupport {
         };
         logger.debug("createGauge: registering gauge : " + gaugeName);
         this.metricRegistry.register(gaugeName, gauge);
+        registeredGaugeNameList.add(gaugeName);
     }
 
     private Long getOldestRunningJobMillis(final ConfigHolder configHolder,
@@ -387,6 +391,10 @@ public class GaugesSupport {
         for (TemporaryGauge tempGauge : localTemporaryGauges.values()) {
             logger.debug("unregisterGauges: unregistering temporary gauge for slow job : " + tempGauge.gaugeName);
             tempGauge.unregister();
+        }
+
+        for (String registeredGaugeName : registeredGaugeNameList) {
+            metricRegistry.remove(registeredGaugeName);
         }
     }
 
