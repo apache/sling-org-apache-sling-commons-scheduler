@@ -112,7 +112,7 @@ public class QuartzScheduler implements BundleListener {
     @Reference
     private ThreadPoolManager threadPoolManager;
 
-    @Reference
+    @Reference(target = "(name=sling)")
     MetricRegistry metricsRegistry;
 
     ConfigHolder configHolder;
