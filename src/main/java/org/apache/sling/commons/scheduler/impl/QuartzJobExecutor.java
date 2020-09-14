@@ -180,7 +180,9 @@ public class QuartzJobExecutor implements Job {
         }
 
         public String getKey() {
-            String key = job.getClass().getName();
+            String key = job.getClass().getPackage() != null ?
+                job.getClass().getPackage().getName() : job.getClass().getName();
+
             if ( providedName != null ) {
                 key = key + "-" + providedName;
             }
