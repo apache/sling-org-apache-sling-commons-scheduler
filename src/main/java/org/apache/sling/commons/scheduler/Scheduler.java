@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * or
  * by using the whiteboard pattern and registering a Runnable service with either
  * the {@link #PROPERTY_SCHEDULER_EXPRESSION} or {@link #PROPERTY_SCHEDULER_PERIOD}
- * property. If both properties are specified, only {@link #PROPERTY_SCHEDULER_PERIOD}
+ * property. If both properties are specified, only {@link #PROPERTY_SCHEDULER_EXPRESSION}
  * is considered for scheduling.
  *
  * Services registered by the whiteboard pattern can by default run concurrently,
