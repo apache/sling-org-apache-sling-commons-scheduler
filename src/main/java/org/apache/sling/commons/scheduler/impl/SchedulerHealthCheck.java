@@ -22,9 +22,9 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
-import org.apache.felix.hc.api.HealthCheck;
-import org.apache.felix.hc.api.Result;
-import org.apache.felix.hc.api.FormattingResultLog;
+import org.apache.sling.hc.api.HealthCheck;
+import org.apache.sling.hc.api.Result;
+import org.apache.sling.hc.util.FormattingResultLog;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
