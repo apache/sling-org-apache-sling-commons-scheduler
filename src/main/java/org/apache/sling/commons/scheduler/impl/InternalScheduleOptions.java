@@ -46,6 +46,8 @@ public class InternalScheduleOptions implements ScheduleOptions {
 
     public String[] runOn;
 
+    public String componenentName;
+
     public InternalScheduleOptions(final TriggerBuilder<? extends Trigger> trigger) {
         this.trigger = trigger;
         this.argumentException = null;
