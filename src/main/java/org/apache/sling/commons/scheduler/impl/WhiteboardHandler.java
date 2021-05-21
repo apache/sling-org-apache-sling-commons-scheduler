@@ -267,11 +267,9 @@ public class WhiteboardHandler {
                 .onInstancesOnly(runOnOpts);
         ((InternalScheduleOptions)scheduleOptions).providedName = getStringProperty(ref, Scheduler.PROPERTY_SCHEDULER_NAME);
         String componentName = getStringProperty(ref, QuartzScheduler.COMPONENT_NAME);
-        if (StringUtils.isEmpty(componentName)) {
+        if (StringUtils.isEmpty(componentName) && job instanceof Runnable) {
             // if registered is a runnable, this is empty
-            if (job instanceof Runnable) {
-                componentName = "Runnable (implementation class = "+ job.getClass().getName() + ")";
-            }
+            componentName = "Runnable (implementation class = "+ job.getClass().getName() + ")";
         }
         ((InternalScheduleOptions) scheduleOptions).componenentName = componentName;
 
