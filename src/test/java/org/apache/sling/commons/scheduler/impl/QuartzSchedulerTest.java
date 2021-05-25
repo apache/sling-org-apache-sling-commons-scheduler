@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +41,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.lenient;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -50,6 +55,12 @@ import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
+
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class QuartzSchedulerTest {
@@ -234,7 +245,7 @@ public class QuartzSchedulerTest {
     public void testBundleChangedWithStartedBundle() throws SchedulerException {
         String firstJob = "testName1";
         String secondJob = "testName2";
-        when(bundle.getBundleId()).thenReturn(2L);
+        lenient().when(bundle.getBundleId()).thenReturn(2L);
 
         quartzScheduler.addJob(1L, 1L, firstJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
         quartzScheduler.addJob(2L, 2L, secondJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
@@ -251,7 +262,7 @@ public class QuartzSchedulerTest {
         String firstJob = "testName1";
         String secondJob = "testName2";
         Long bundleIdToRemove = 2L;
-        when(bundle.getBundleId()).thenReturn(bundleIdToRemove);
+        lenient().when(bundle.getBundleId()).thenReturn(bundleIdToRemove);
 
         quartzScheduler.addJob(1L, 1L, firstJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
         quartzScheduler.addJob(bundleIdToRemove, 2L, secondJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
@@ -366,5 +377,33 @@ public class QuartzSchedulerTest {
         assertNotNull(jobDetail);
         assertNull(jobDetail.getJobDataMap().get(QuartzScheduler.DATA_MAP_PROVIDED_NAME));
         assertNotNull(jobDetail.getJobDataMap().get(QuartzScheduler.DATA_MAP_NAME));
+    }
+
+    @Test
+    public void testDefaultThreadPoolLogging() throws Exception {
+
+        // Create a spy on the logger and enable debugging on it
+        Field logger = quartzScheduler.getClass().getDeclaredField("defaultThreadPoolLogger");
+        logger.setAccessible(true);
+        logger.get(quartzScheduler);
+        ch.qos.logback.classic.Logger threadpoolLogger = (ch.qos.logback.classic.Logger) logger.get(quartzScheduler);
+        threadpoolLogger.setLevel(Level.DEBUG);
+        ch.qos.logback.classic.Logger spy = Mockito.spy(threadpoolLogger);
+        logger.set(quartzScheduler, spy);
+
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+
+        assertTrue(quartzScheduler.schedule(2L, 2L, new Thread(), new InternalScheduleOptions(TriggerBuilder.newTrigger())));
+        Mockito.verify(spy).isDebugEnabled();
+        Mockito.verify(spy).debug(Mockito.matches("Scheduled job using the default threadpool;.+"),argument.capture());
+        assertTrue(argument.getValue().startsWith("triggered by this code:"));
+        Mockito.reset(spy);
+
+        InternalScheduleOptions options = new InternalScheduleOptions(TriggerBuilder.newTrigger());
+        options.componenentName = "org.some.component.name";
+        assertTrue(quartzScheduler.schedule(2L, 2L, new Thread(), options));
+        Mockito.verify(spy).isDebugEnabled();
+        Mockito.verify(spy).debug(Mockito.matches("Scheduled job using the default threadpool;.+"),argument.capture());
+        assertTrue(argument.getValue().equals("defined by OSGI annotations on component with name org.some.component.name"));
     }
 }

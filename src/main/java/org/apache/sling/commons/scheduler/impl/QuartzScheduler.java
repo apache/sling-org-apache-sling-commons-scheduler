@@ -652,7 +652,8 @@ public class QuartzScheduler implements BundleListener {
                 String[] stackFrames = ExceptionUtils.getStackFrames(e);
                 StringBuilder stackExcerpt = new StringBuilder();
                 // skip the first line, it contains the name of the exception
-                for (int i=1;i< STACKTRACE_DEPTH;i++) {
+                int depth = Math.min(STACKTRACE_DEPTH, stackFrames.length);
+                for (int i=1;i< depth ;i++) {
                     stackExcerpt.append(stackFrames[i]).append("\n");
                 }
                 location = "triggered by this code:\n" + stackExcerpt.toString();
