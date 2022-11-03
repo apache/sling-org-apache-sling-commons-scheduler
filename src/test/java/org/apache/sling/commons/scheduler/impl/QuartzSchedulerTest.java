@@ -31,11 +31,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.sling.commons.scheduler.Job;
+import org.apache.sling.commons.scheduler.ScheduleOptions;
+import org.apache.sling.commons.threads.ModifiableThreadPoolConfig;
+import org.apache.sling.commons.threads.ThreadPool;
+import org.apache.sling.commons.threads.ThreadPoolConfig;
+import org.apache.sling.commons.threads.ThreadPoolConfig.ThreadPoolPolicy;
+import org.apache.sling.commons.threads.ThreadPoolManager;
+import org.apache.sling.commons.threads.impl.DefaultThreadPool;
 import org.apache.sling.testing.mock.osgi.MockOsgi;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -72,6 +82,73 @@ public class QuartzSchedulerTest {
         Field sField = QuartzScheduler.class.getDeclaredField("schedulers");
         sField.setAccessible(true);
         this.proxies = (Map<String, SchedulerProxy>) sField.get(quartzScheduler);
+    }
+
+    @Test
+    @Ignore(value="currently fails")
+    public void testThreadPoolConfigs_minSize1_maxSize1_queue1() throws Exception {
+        doTestThreadPool(1, 1, ThreadPoolPolicy.DISCARDOLDEST, 1);
+    }
+
+    @Test
+    @Ignore(value="currently fails")
+    public void testThreadPoolConfigst_minSize0_maxSize1_queue1() throws Exception {
+        doTestThreadPool(0, 1, ThreadPoolPolicy.DISCARDOLDEST, 1);
+    }
+
+    @Test
+    public void testThreadPoolConfigs_minSize0_maxSize2_queue1() throws Exception {
+        doTestThreadPool(0, 2, ThreadPoolPolicy.DISCARDOLDEST, 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void doTestThreadPool(int minPoolSize, int maxPoolSize,
+            ThreadPoolPolicy policy, int queueSize) throws Exception,
+            NoSuchFieldException, IllegalAccessException, InterruptedException {
+        ModifiableThreadPoolConfig config = new ModifiableThreadPoolConfig();
+        config.setMinPoolSize(minPoolSize);
+        config.setMaxPoolSize(maxPoolSize);
+        config.setBlockPolicy(policy);
+        config.setQueueSize(queueSize);
+        DefaultThreadPool dtp = new DefaultThreadPool("myPoolName", config);
+
+        ThreadPoolManager fixedThreadPoolManager = new ThreadPoolManager() {
+
+            @Override
+            public void release(ThreadPool pool) {
+                // not implemented
+            }
+
+            @Override
+            public ThreadPool get(String name) {
+                return dtp;
+            }
+
+            @Override
+            public ThreadPool create(ThreadPoolConfig config, String label) {
+                return dtp;
+            }
+
+            @Override
+            public ThreadPool create(ThreadPoolConfig config) {
+                return dtp;
+            }
+        };
+
+        quartzScheduler = ActivatedQuartzSchedulerFactory.create(context, "testName", fixedThreadPoolManager);
+        Field sField = QuartzScheduler.class.getDeclaredField("schedulers");
+        sField.setAccessible(true);
+        this.proxies = (Map<String, SchedulerProxy>) sField.get(quartzScheduler);
+
+        final Semaphore s = new Semaphore(0);
+        ScheduleOptions opts = quartzScheduler.NOW();
+        opts.threadPoolName("myPoolName");
+        this.quartzScheduler.schedule(bundle.getBundleId(), null, new Runnable() {
+            public void run() {
+                s.release();
+            }
+        }, opts);
+        assertTrue("schedule.now not invoked within 5 sec", s.tryAcquire(5, TimeUnit.SECONDS));
     }
 
     @Test
