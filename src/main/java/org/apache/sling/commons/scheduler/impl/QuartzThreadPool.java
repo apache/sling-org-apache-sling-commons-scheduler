@@ -21,13 +21,18 @@ import org.apache.sling.commons.threads.ThreadPool;
 public class QuartzThreadPool implements org.quartz.spi.ThreadPool {
 
     /** Our executor thread pool */
-    private ThreadPool executor;
+    private volatile ThreadPool executor;
+
+    private final Object lock = new Object();
+
+    private volatile int counter;
 
     /**
      * Create a new wrapper implementation for Quartz.
      */
     public QuartzThreadPool(final ThreadPool executor) {
         this.executor = executor;
+        this.counter = executor.getConfiguration().getMaxPoolSize();
     }
 
     /**
@@ -67,8 +72,23 @@ public class QuartzThreadPool implements org.quartz.spi.ThreadPool {
      */
     @Override
     public boolean runInThread(final Runnable job) {
-        this.executor.execute(job);
-
+        synchronized ( this.lock ) {
+            if ( this.counter == 0 ) {
+                return false;
+            }
+            this.counter--;
+        }
+        final Runnable r = () -> {
+            try {
+                job.run();
+            } finally {
+                synchronized ( this.lock ) {
+                    this.counter++;
+                    this.lock.notify();
+                }    
+            }
+        };
+        this.executor.execute(r);
         return true;
     }
 
@@ -77,7 +97,16 @@ public class QuartzThreadPool implements org.quartz.spi.ThreadPool {
      */
     @Override
     public int blockForAvailableThreads() {
-        return this.executor.getConfiguration().getMaxPoolSize() - this.executor.getConfiguration().getQueueSize();
+        synchronized ( this.lock ) {
+            while ( this.counter == 0 ) {
+                try {
+                    this.lock.wait();
+                } catch (final InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return this.counter;
+        }
     }
 
     /**
@@ -85,6 +114,11 @@ public class QuartzThreadPool implements org.quartz.spi.ThreadPool {
      */
     @Override
     public void shutdown(final boolean waitForJobsToComplete) {
+        // potentially wake up blockForAvailableThreads
+        synchronized ( this.lock ) {
+            this.counter = Integer.MAX_VALUE;
+            this.lock.notify();
+        }
         // the pool is managed by the thread pool manager,
         // so we can just return
         this.executor = null;

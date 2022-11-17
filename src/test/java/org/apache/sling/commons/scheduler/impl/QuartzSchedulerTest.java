@@ -85,13 +85,11 @@ public class QuartzSchedulerTest {
     }
 
     @Test
-    @Ignore(value="currently fails")
     public void testThreadPoolConfigs_minSize1_maxSize1_queue1() throws Exception {
         doTestThreadPool(1, 1, ThreadPoolPolicy.DISCARDOLDEST, 1);
     }
 
     @Test
-    @Ignore(value="currently fails")
     public void testThreadPoolConfigst_minSize0_maxSize1_queue1() throws Exception {
         doTestThreadPool(0, 1, ThreadPoolPolicy.DISCARDOLDEST, 1);
     }
