@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.sling.commons.threads.ThreadPoolManager;
 import org.apache.sling.commons.threads.impl.DefaultThreadPoolManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -59,4 +60,32 @@ class ActivatedQuartzSchedulerFactory {
         }
         return quartzScheduler;
     }
+
+    public static QuartzScheduler create(BundleContext context, String poolName, ThreadPoolManager tpm) throws Exception {
+        QuartzScheduler quartzScheduler = null;
+        if (context != null) {
+            quartzScheduler = new QuartzScheduler();
+            Dictionary<String, Object> props = new Hashtable<String, Object>();
+            props.put(Constants.SERVICE_DESCRIPTION, "org.apache.sling.commons.threads.impl.DefaultThreadPoolManager");
+            props.put(Constants.SERVICE_PID, "org.apache.sling.commons.threads.impl.DefaultThreadPoolManager");
+
+            Field f = QuartzScheduler.class.getDeclaredField("threadPoolManager");
+            f.setAccessible(true);
+            f.set(quartzScheduler, tpm);
+
+            final QuartzSchedulerConfiguration configuration = mock(QuartzSchedulerConfiguration.class);
+            if (poolName == null) {
+                when(configuration.poolName()).thenReturn("testName");
+            } else {
+                final String[] allowedPoolNames = new String[] {"testName", "allowed"};
+                when(configuration.poolName()).thenReturn(poolName);
+                when(configuration.allowedPoolNames()).thenReturn(allowedPoolNames);
+            }
+
+            quartzScheduler.activate(context, configuration);
+            context.registerService("scheduler", quartzScheduler, props);
+        }
+        return quartzScheduler;
+    }
+
 }
