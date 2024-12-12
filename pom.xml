@@ -22,13 +22,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.sling</groupId>
-        <artifactId>sling</artifactId>
+        <artifactId>sling-bundle-parent</artifactId>
         <version>35</version>
         <relativePath />
     </parent>
 
     <artifactId>org.apache.sling.commons.scheduler</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
     <version>2.7.13-SNAPSHOT</version>
 
     <name>Apache Sling Commons Scheduler Support</name>
@@ -46,65 +46,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Import-Package>
-                            !commonj.work,
-                            !com.mchange.v2.c3p0,
-                            !javax.ejb,
-                            !javax.jms,
-                            !javax.mail,
-                            !javax.mail.internet,
-                            !javax.servlet,
-                            !javax.servlet.http,
-                            !javax.sql,
-                            !javax.transaction,
-                            !oracle.sql,
-                            !org.jboss.logging,
-                            !org.jboss.naming,
-                            !org.jboss.system,
-                            !org.quartz.jobs,
-                            !org.terracotta.toolkit,
-                            !org.terracotta.toolkit.atomic,
-                            !org.terracotta.toolkit.builder,
-                            !org.terracotta.toolkit.cluster,
-                            !org.terracotta.toolkit.collections,
-                            !org.terracotta.toolkit.concurrent.locks,
-                            !org.terracotta.toolkit.config,
-                            !org.terracotta.toolkit.rejoin,
-                            !org.terracotta.toolkit.internal,
-                            !org.terracotta.toolkit.internal.concurrent.locks,
-                            !org.terracotta.toolkit.search,
-                            !org.terracotta.toolkit.search.attribute,
-                            !org.terracotta.toolkit.store,
-                            !weblogic.jdbc.jts,
-                            !weblogic.jdbc.vendor.oracle,
-                            !javax.xml.bind,
-                            !com.zaxxer.hikari,
-                            org.apache.sling.discovery;resolution:=optional,
-                            org.apache.sling.settings;resolution:=optional,
-                            org.apache.felix.hc.api;resolution:=optional,
-                            *                        
-                        </Import-Package>
-                        <Export-Package>
-                             org.apache.sling.commons.scheduler
-                        </Export-Package>
-                        <DynamicImport-Package>
-                            org.apache.sling.discovery;version="[1.0,2)",
-                            org.apache.sling.settings;version="[1.0,2)",
-                            org.apache.sling.hc.api,
-                            org.apache.sling.hc.util
-                        </DynamicImport-Package>
-                        <Private-Package>
-                            org.apache.sling.commons.scheduler.*,
-                            org.quartz.*;-split-package:=merge-first,
-                            org.terracotta.*
-                        </Private-Package>
-                    </instructions>
-                </configuration>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -205,7 +148,7 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.testing.osgi-mock</artifactId>
-            <version>1.2.0</version>
+            <version>3.5.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
