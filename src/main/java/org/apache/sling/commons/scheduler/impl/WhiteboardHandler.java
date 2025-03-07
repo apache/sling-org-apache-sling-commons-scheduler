@@ -271,7 +271,7 @@ public class WhiteboardHandler {
         if ( this.scheduler.schedule(bundleId, serviceId, job, options) ) {
             this.idToNameMap.put(serviceId, name);
         } else {
-            logger.error("Scheduling service {} failed.", ref);
+            logger.error("Scheduling Runnable service {} failed.", job.getClass().getName());
         }
     }
 }
