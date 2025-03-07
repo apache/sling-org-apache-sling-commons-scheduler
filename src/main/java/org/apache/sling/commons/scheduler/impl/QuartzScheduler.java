@@ -525,10 +525,8 @@ public class QuartzScheduler implements BundleListener {
         try {
             this.scheduleJob(bundleId, serviceId, job, options);
             return true;
-        } catch (final IllegalArgumentException iae) {
-            // ignore this and return false
-            return false;
-        } catch (final SchedulerException se) {
+        } catch (final IllegalArgumentException|SchedulerException e) {
+            logger.warn("Exception during scheduling of job " + job.getClass().getName(), e);
             // ignore this and return false
             return false;
         }
