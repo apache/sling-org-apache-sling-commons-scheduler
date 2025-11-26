@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.ScheduleOptions;
 import org.apache.sling.commons.scheduler.Scheduler;
@@ -265,6 +266,12 @@ public class WhiteboardHandler {
                 .threadPoolName(poolName)
                 .onInstancesOnly(runOnOpts);
         ((InternalScheduleOptions)scheduleOptions).providedName = getStringProperty(ref, Scheduler.PROPERTY_SCHEDULER_NAME);
+        String componentName = getStringProperty(ref, QuartzScheduler.COMPONENT_NAME);
+        if (StringUtils.isEmpty(componentName) && job instanceof Runnable) {
+            // if registered is a runnable, this is empty
+            componentName = "Runnable (implementation class = "+ job.getClass().getName() + ")";
+        }
+        ((InternalScheduleOptions) scheduleOptions).componenentName = componentName;
 
         final long bundleId = ref.getBundle().getBundleId();
         final Long serviceId = getLongProperty(ref, Constants.SERVICE_ID);

@@ -25,6 +25,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.ScheduleOptions;
 import org.apache.sling.commons.scheduler.Scheduler;
@@ -106,8 +108,14 @@ public class QuartzScheduler implements BundleListener {
 
     static final String METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS = "commons.scheduler.oldest.running.job.millis";
 
+    // property which contains the component name ( = class names) for service references
+    static final String COMPONENT_NAME = "component.name";
+
     /** Default logger. */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private final Logger defaultThreadPoolLogger = LoggerFactory.getLogger(this.getClass().getName() + ".defaultThreadPool");
+    private static final int STACKTRACE_DEPTH = 10;
 
     @Reference
     private ThreadPoolManager threadPoolManager;
@@ -578,6 +586,9 @@ public class QuartzScheduler implements BundleListener {
             // as this method might be called from unbind and during
             // unbind a deactivate could happen, we check the scheduler first
             final String poolName = getThreadPoolName(opts.threadPoolName);
+            if (poolName.equals(this.defaultPoolName) && defaultThreadPoolLogger.isDebugEnabled()) {
+                logUsageOfDefaultThreadPool(opts);
+            }
             SchedulerProxy proxy = null;
             synchronized ( this.schedulers ) {
                 if ( this.active ) {
@@ -622,5 +633,31 @@ public class QuartzScheduler implements BundleListener {
         synchronized ( this.schedulers ) {
             return new HashMap<>(this.schedulers);
         }
+    }
+
+    /**
+     * Log a stacktrace that the default threadpool is used
+     */
+    private void logUsageOfDefaultThreadPool(InternalScheduleOptions options) {
+
+        String location = "";
+        if (!StringUtils.isEmpty(options.componenentName)) {
+             location = "defined by OSGI annotations on component with name " + options.componenentName;
+        } else {
+            try {
+                throw new IllegalArgumentException();
+            } catch (IllegalArgumentException e) {
+                String[] stackFrames = ExceptionUtils.getStackFrames(e);
+                StringBuilder stackExcerpt = new StringBuilder();
+                // skip the first line, it contains the name of the exception
+                int depth = Math.min(STACKTRACE_DEPTH, stackFrames.length);
+                for (int i=1;i< depth ;i++) {
+                    stackExcerpt.append(stackFrames[i]).append("\n");
+                }
+                location = "triggered by this code:\n" + stackExcerpt.toString();
+            }
+        }
+        defaultThreadPoolLogger.debug("Scheduled job using the default threadpool; {}",
+                location);
     }
 }
