@@ -100,7 +100,7 @@ public class WebConsolePrinter {
                                 final JobInfo info = new JobInfo();
                                 info.name = desc.name;
                                 info.className = desc.job.getClass().getName();
-                                info.concurrent = !detail.isConcurrentExectionDisallowed();
+                                info.concurrent = !detail.isConcurrentExecutionDisallowed();
                                 // check run on information
                                 if ( desc.runOn != null ) {
                                     if ( desc.isRunOnLeader() ) {

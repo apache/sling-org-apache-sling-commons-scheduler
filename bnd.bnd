@@ -1,6 +1,10 @@
 Import-Package: \
     !commonj.work, \
     !com.mchange.v2.c3p0, \
+    !jakarta.servlet, \
+    !jakarta.servlet.http, \
+    !jakarta.transaction, \
+    !jakarta.xml.bind, \
     !javax.ejb, \
     !javax.jms, \
     !javax.mail, \
