@@ -103,6 +103,7 @@ public class QuartzThreadPool implements org.quartz.spi.ThreadPool {
                     this.lock.wait();
                 } catch (final InterruptedException e) {
                     Thread.currentThread().interrupt();
+                    return 0;
                 }
             }
             return this.counter;
