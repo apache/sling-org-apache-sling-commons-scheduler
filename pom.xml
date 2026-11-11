@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
   or more contributor license agreements.  See the NOTICE file
@@ -28,42 +28,22 @@
     </parent>
 
     <artifactId>org.apache.sling.commons.scheduler</artifactId>
-    <packaging>jar</packaging>
     <version>2.8.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>Apache Sling Commons Scheduler Support</name>
-    <description>
-        Support for scheduling.
-    </description>
-
-    <properties>
-        <sling.java.version>11</sling.java.version>
-    </properties>
+    <description>Support for scheduling.</description>
 
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-commons-scheduler.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-commons-scheduler.git</developerConnection>
+        <tag>HEAD</tag>
         <url>https://github.com/apache/sling-org-apache-sling-commons-scheduler.git</url>
-      <tag>HEAD</tag>
-  </scm>
+    </scm>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>biz.aQute.bnd</groupId>
-                <artifactId>bnd-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <excludePackageNames>
-                        org.apache.sling.commons.scheduler.impl
-                    </excludePackageNames>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <properties>
+        <sling.java.version>11</sling.java.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -177,4 +157,20 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <excludePackageNames>org.apache.sling.commons.scheduler.impl</excludePackageNames>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

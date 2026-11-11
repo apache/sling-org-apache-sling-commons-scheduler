@@ -57,7 +57,7 @@ public class SettingsSupport {
      */
     @Deactivate
     protected void deactivate() {
-        if ( this.settingsListener != null ) {
+        if (this.settingsListener != null) {
             this.settingsListener.stop();
             this.settingsListener = null;
         }
@@ -86,8 +86,7 @@ public class SettingsSupport {
          */
         public void start() {
             try {
-                bundleContext.addServiceListener(this, "("
-                        + Constants.OBJECTCLASS + "=" + SETTINGS_NAME + ")");
+                bundleContext.addServiceListener(this, "(" + Constants.OBJECTCLASS + "=" + SETTINGS_NAME + ")");
             } catch (final InvalidSyntaxException ise) {
                 // this should really never happen
                 throw new RuntimeException("Unexpected exception occured.", ise);
@@ -100,7 +99,7 @@ public class SettingsSupport {
          * Unregister the listener.
          */
         public void stop() {
-            if ( active.compareAndSet(true, false) ) {
+            if (active.compareAndSet(true, false)) {
                 bundleContext.removeServiceListener(this);
             }
         }
@@ -110,9 +109,9 @@ public class SettingsSupport {
          */
         private synchronized void retainService() {
             final ServiceReference reference = bundleContext.getServiceReference(SETTINGS_NAME);
-            if ( reference != null ) {
-                final SlingSettingsService service = (SlingSettingsService)bundleContext.getService(reference);
-                if ( service != null ) {
+            if (reference != null) {
+                final SlingSettingsService service = (SlingSettingsService) bundleContext.getService(reference);
+                if (service != null) {
                     QuartzJobExecutor.SLING_ID = service.getSlingId();
                     this.bundleContext.ungetService(reference);
                     // stop the listener, we don't need it anymore

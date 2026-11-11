@@ -1,40 +1,42 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.util.Vector;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 public class MetricsHelperTest {
 
-    class T1{ }
-    
-    class T2{ }
-    
-    class Tother{ }
-    
+    class T1 {}
+
+    class T2 {}
+
+    class Tother {}
+
     private final class QSC implements QuartzSchedulerConfiguration {
-        
+
         private Class<? extends Annotation> annotationType;
         private int slowThresholdMillis;
         private boolean useleaderforsingle;
@@ -75,9 +77,9 @@ public class MetricsHelperTest {
 
     @Test
     public void testAsMetricsSuffix_NullValues() throws Exception {
-        assertEquals(MetricsHelper.UNKNOWN_JOBNAME_SUFFIX ,MetricsHelper.asMetricsSuffix(null));
+        assertEquals(MetricsHelper.UNKNOWN_JOBNAME_SUFFIX, MetricsHelper.asMetricsSuffix(null));
     }
-    
+
     @Test
     public void testAsMetricsSuffix_Suffixes() throws Exception {
         assertEquals("bar", MetricsHelper.asMetricsSuffix("bar"));
@@ -92,7 +94,7 @@ public class MetricsHelperTest {
         assertEquals("abcde.f.1", MetricsHelper.asMetricsSuffix("a.b.c.d.e.f.1...."));
         assertEquals("abcde.f.1", MetricsHelper.asMetricsSuffix("a.b...c..d.e......f.1"));
     }
-    
+
     @Test
     public void testDeriveFilterName_NullValues() throws Exception {
         assertNull(MetricsHelper.deriveFilterName(null, null));
@@ -110,15 +112,15 @@ public class MetricsHelperTest {
         assertNull(MetricsHelper.deriveFilterName(configHolder, null));
         assertNull(MetricsHelper.deriveFilterName(configHolder, "a"));
     }
-    
+
     @Test
     public void testDeriveFilterName_FilterVariations() throws Exception {
         final QSC config = new QSC();
-        config.metrics_filters = new String[] { 
-                "filter1=org.apache.sling.commons.scheduler.impl.MetricsHelperTest",
-                "filter2=org.apache.sling.commons.scheduler.impl.QuartzSchedulerTest",
-                "filter3=org.apache.sling.commons.scheduler.impl.Tunused",
-                "filter4=java.lang.String"
+        config.metrics_filters = new String[] {
+            "filter1=org.apache.sling.commons.scheduler.impl.MetricsHelperTest",
+            "filter2=org.apache.sling.commons.scheduler.impl.QuartzSchedulerTest",
+            "filter3=org.apache.sling.commons.scheduler.impl.Tunused",
+            "filter4=java.lang.String"
         };
         final ConfigHolder configHolder = new ConfigHolder(config);
         assertEquals("filter1", MetricsHelper.deriveFilterName(configHolder, new MetricsHelperTest()));
@@ -133,23 +135,28 @@ public class MetricsHelperTest {
 
         assertEquals(null, MetricsHelper.deriveFilterName(configHolder, null));
     }
-    
+
     @Test
     public void testConfigHolder() throws Exception {
         final QSC config = new QSC();
-        config.metrics_filters = new String[] { 
-                "filter1=org.apache.sling.commons.scheduler.impl.MetricsHelperTest",
-                "filter2=org.apache.sling.commons.scheduler.impl.QuartzSchedulerTest",
-                "filter3=org.apache.sling.commons.scheduler.impl.Tunused",
-                "filter4=java.lang.String",
-                "wrongFilter5=java.foo.Wrong$1",
-                "wrongFilter6=java.bar.Wrong*",
-                "wrongFilter7=java.zet.Wrong?"
+        config.metrics_filters = new String[] {
+            "filter1=org.apache.sling.commons.scheduler.impl.MetricsHelperTest",
+            "filter2=org.apache.sling.commons.scheduler.impl.QuartzSchedulerTest",
+            "filter3=org.apache.sling.commons.scheduler.impl.Tunused",
+            "filter4=java.lang.String",
+            "wrongFilter5=java.foo.Wrong$1",
+            "wrongFilter6=java.bar.Wrong*",
+            "wrongFilter7=java.zet.Wrong?"
         };
         final ConfigHolder configHolder = new ConfigHolder(config);
         assertTrue(configHolder.getFilterDefinitions().containsKey("java.lang"));
         assertTrue(configHolder.getFilterDefinitions().containsKey("org.apache.sling.commons.scheduler.impl"));
         assertEquals(2, configHolder.getFilterDefinitions().size());
-        assertEquals(3, configHolder.getFilterDefinitions().get("org.apache.sling.commons.scheduler.impl").size());
+        assertEquals(
+                3,
+                configHolder
+                        .getFilterDefinitions()
+                        .get("org.apache.sling.commons.scheduler.impl")
+                        .size());
     }
 }

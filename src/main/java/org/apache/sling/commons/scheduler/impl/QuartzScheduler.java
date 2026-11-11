@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
 
@@ -25,6 +27,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.sling.commons.scheduler.Job;
 import org.apache.sling.commons.scheduler.ScheduleOptions;
 import org.apache.sling.commons.scheduler.Scheduler;
@@ -53,22 +56,15 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.MetricRegistry;
-
 /**
  * The quartz based implementation of the scheduler.
  *
  */
 @Component(
-    service = QuartzScheduler.class,
-    property = {
-            Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
-    },
-    immediate = true
-)
-@Designate(
-    ocd = QuartzSchedulerConfiguration.class
-)
+        service = QuartzScheduler.class,
+        property = {Constants.SERVICE_VENDOR + "=The Apache Software Foundation"},
+        immediate = true)
+@Designate(ocd = QuartzSchedulerConfiguration.class)
 public class QuartzScheduler implements BundleListener {
 
     /** Map key for the job object */
@@ -159,12 +155,12 @@ public class QuartzScheduler implements BundleListener {
         ctx.removeBundleListener(this);
 
         final Map<String, SchedulerProxy> proxies;
-        synchronized ( this.schedulers ) {
+        synchronized (this.schedulers) {
             this.active = false;
             proxies = new HashMap<>(this.schedulers);
             this.schedulers.clear();
         }
-        for(final SchedulerProxy proxy : proxies.values()) {
+        for (final SchedulerProxy proxy : proxies.values()) {
             proxy.dispose();
         }
     }
@@ -176,16 +172,17 @@ public class QuartzScheduler implements BundleListener {
      */
     private String getThreadPoolName(final String name) {
         // no name specified
-        if ( name == null || name.trim().isEmpty() ) {
+        if (name == null || name.trim().isEmpty()) {
             return this.defaultPoolName;
         }
         // checked allowed list
-        for(final String n : this.allowedPoolNames) {
-            if ( name.trim().equals(n) ) {
+        for (final String n : this.allowedPoolNames) {
+            if (name.trim().equals(n)) {
                 return n;
             }
         }
-        logger.warn("Scheduler job requested thread pool with name " + name + " but this thread pool is not in the list of allowed pools.");
+        logger.warn("Scheduler job requested thread pool with name " + name
+                + " but this thread pool is not in the list of allowed pools.");
         return this.defaultPoolName;
     }
 
@@ -194,25 +191,30 @@ public class QuartzScheduler implements BundleListener {
      */
     @Override
     public void bundleChanged(final BundleEvent event) {
-        if ( event.getType() == BundleEvent.STOPPED ) {
+        if (event.getType() == BundleEvent.STOPPED) {
             final Long bundleId = event.getBundle().getBundleId();
 
-            synchronized ( this.schedulers ) {
-                if ( this.active ) {
-                    for(final SchedulerProxy proxy : this.schedulers.values()) {
+            synchronized (this.schedulers) {
+                if (this.active) {
+                    for (final SchedulerProxy proxy : this.schedulers.values()) {
                         try {
                             final List<String> groups = proxy.getScheduler().getJobGroupNames();
-                            for(final String group : groups) {
-                                final Set<JobKey> keys = proxy.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(group));
-                                for(final JobKey key : keys) {
-                                    final JobDetail detail = proxy.getScheduler().getJobDetail(key);
-                                    if ( detail != null ) {
-                                        final String jobName = (String) detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_NAME);
-                                        final Object job = detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_OBJECT);
+                            for (final String group : groups) {
+                                final Set<JobKey> keys =
+                                        proxy.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(group));
+                                for (final JobKey key : keys) {
+                                    final JobDetail detail =
+                                            proxy.getScheduler().getJobDetail(key);
+                                    if (detail != null) {
+                                        final String jobName =
+                                                (String) detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_NAME);
+                                        final Object job =
+                                                detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_OBJECT);
 
-                                        if ( jobName != null && job != null ) {
-                                            final Long jobBundleId = (Long) detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_BUNDLE_ID);
-                                            if ( jobBundleId != null && jobBundleId.equals(bundleId) ) {
+                                        if (jobName != null && job != null) {
+                                            final Long jobBundleId = (Long)
+                                                    detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_BUNDLE_ID);
+                                            if (jobBundleId != null && jobBundleId.equals(bundleId)) {
                                                 proxy.getScheduler().deleteJob(key);
                                                 this.logger.debug("Unscheduling job with name {}", jobName);
                                             }
@@ -220,14 +222,13 @@ public class QuartzScheduler implements BundleListener {
                                     }
                                 }
                             }
-                        } catch ( final SchedulerException ignore) {
+                        } catch (final SchedulerException ignore) {
                             // we ignore this as there is nothing to do
                         }
                     }
                 }
             }
         }
-
     }
 
     /**
@@ -238,35 +239,40 @@ public class QuartzScheduler implements BundleListener {
      * @param concurent
      * @return
      */
-    private JobDataMap initDataMap(final Long    bundleId,
-                                   final Long    serviceId,
-                                   final String  jobName,
-                                   final Object  job,
-                                   final InternalScheduleOptions options) {
+    private JobDataMap initDataMap(
+            final Long bundleId,
+            final Long serviceId,
+            final String jobName,
+            final Object job,
+            final InternalScheduleOptions options) {
         final JobDataMap jobDataMap = new JobDataMap();
 
         jobDataMap.put(DATA_MAP_OBJECT, job);
 
-        if ( options.providedName != null ) {
+        if (options.providedName != null) {
             jobDataMap.put(DATA_MAP_PROVIDED_NAME, options.providedName);
         }
         jobDataMap.put(DATA_MAP_NAME, jobName);
         jobDataMap.put(DATA_MAP_LOGGER, this.logger);
         jobDataMap.put(DATA_MAP_QUARTZ_SCHEDULER, this);
         jobDataMap.put(DATA_MAP_THREAD_POOL_NAME, getThreadPoolName(options.threadPoolName));
-        if ( bundleId != null ) {
+        if (bundleId != null) {
             jobDataMap.put(DATA_MAP_BUNDLE_ID, bundleId);
         }
-        if ( serviceId != null ) {
+        if (serviceId != null) {
             jobDataMap.put(DATA_MAP_SERVICE_ID, serviceId);
         }
-        if ( options.configuration != null ) {
+        if (options.configuration != null) {
             jobDataMap.put(DATA_MAP_CONFIGURATION, options.configuration);
         }
-        if ( options.runOn != null) {
-            if ( options.runOn.length > 1
-                 || (!Scheduler.VALUE_RUN_ON_LEADER.equals(options.runOn[0]) && !Scheduler.VALUE_RUN_ON_SINGLE.equals(options.runOn[0]))) {
-                logger.warn("Job {} ({}) is scheduled to run on specific Sling Instances. This feature is deprecated. Please don't use it anymore.", jobName, job);
+        if (options.runOn != null) {
+            if (options.runOn.length > 1
+                    || (!Scheduler.VALUE_RUN_ON_LEADER.equals(options.runOn[0])
+                            && !Scheduler.VALUE_RUN_ON_SINGLE.equals(options.runOn[0]))) {
+                logger.warn(
+                        "Job {} ({}) is scheduled to run on specific Sling Instances. This feature is deprecated. Please don't use it anymore.",
+                        jobName,
+                        job);
             }
             jobDataMap.put(DATA_MAP_RUN_ON, options.runOn);
         }
@@ -280,10 +286,9 @@ public class QuartzScheduler implements BundleListener {
      * @param jobDataMap
      * @return
      */
-    private JobDetail createJobDetail(final String name,
-                                        final JobDataMap jobDataMap,
-                                        final boolean concurrent) {
-        final JobDetail detail = JobBuilder.newJob((concurrent ? QuartzJobExecutor.class : NonParallelQuartzJobExecutor.class))
+    private JobDetail createJobDetail(final String name, final JobDataMap jobDataMap, final boolean concurrent) {
+        final JobDetail detail = JobBuilder.newJob(
+                        (concurrent ? QuartzJobExecutor.class : NonParallelQuartzJobExecutor.class))
                 .withIdentity(name)
                 .usingJobData(jobDataMap)
                 .build();
@@ -293,46 +298,52 @@ public class QuartzScheduler implements BundleListener {
     /**
      * Check the job object, either runnable or job is allowed
      */
-    private void checkJob(final Object job)
-    throws IllegalArgumentException {
+    private void checkJob(final Object job) throws IllegalArgumentException {
         if (!(job instanceof Runnable) && !(job instanceof Job)) {
-            throw new IllegalArgumentException("Job object is neither an instance of " + Runnable.class.getName() + " nor " + Job.class.getName());
+            throw new IllegalArgumentException(
+                    "Job object is neither an instance of " + Runnable.class.getName() + " nor " + Job.class.getName());
         }
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#addJob(java.lang.String, java.lang.Object, java.util.Map, java.lang.String, boolean)
      */
-    public void addJob(final Long bundleId,
-                       final Long serviceId,
-                       final String name,
-                       final Object job,
-                       final Map<String, Serializable>    config,
-                       final String schedulingExpression,
-                       final boolean canRunConcurrently)
-    throws SchedulerException {
-        this.scheduleJob(bundleId, serviceId, job,
+    public void addJob(
+            final Long bundleId,
+            final Long serviceId,
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final String schedulingExpression,
+            final boolean canRunConcurrently)
+            throws SchedulerException {
+        this.scheduleJob(
+                bundleId,
+                serviceId,
+                job,
                 EXPR(schedulingExpression).name(name).config(config).canRunConcurrently(canRunConcurrently));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#addPeriodicJob(java.lang.String, java.lang.Object, java.util.Map, long, boolean)
      */
-    public void addPeriodicJob(final Long bundleId,
-                               final Long serviceId,
-                               final String name,
-                               final Object job,
-                               final Map<String, Serializable> config,
-                               final long period,
-                               final boolean canRunConcurrently)
-    throws SchedulerException {
+    public void addPeriodicJob(
+            final Long bundleId,
+            final Long serviceId,
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final long period,
+            final boolean canRunConcurrently)
+            throws SchedulerException {
         this.addPeriodicJob(bundleId, serviceId, name, job, config, period, canRunConcurrently, false);
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#addPeriodicJob(java.lang.String, java.lang.Object, java.util.Map, long, boolean, boolean)
      */
-    public void addPeriodicJob(final Long bundleId,
+    public void addPeriodicJob(
+            final Long bundleId,
             final Long serviceId,
             final String name,
             final Object job,
@@ -340,75 +351,81 @@ public class QuartzScheduler implements BundleListener {
             final long period,
             final boolean canRunConcurrently,
             final boolean startImmediate)
-    throws SchedulerException {
-        this.scheduleJob(bundleId, serviceId, job,
+            throws SchedulerException {
+        this.scheduleJob(
+                bundleId,
+                serviceId,
+                job,
                 PERIODIC(period, startImmediate).name(name).config(config).canRunConcurrently(canRunConcurrently));
     }
 
     private ScheduleOptions PERIODIC(final long period, final boolean startImmediate) {
-        if ( period < 1 ) {
+        if (period < 1) {
             return new InternalScheduleOptions(new IllegalArgumentException("Period argument must be higher than 0"));
         }
         final long ms = period * 1000;
 
         final TriggerBuilder<SimpleTrigger> builder = TriggerBuilder.newTrigger()
                 .startAt(new Date(System.currentTimeMillis() + ms))
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule().repeatForever().withIntervalInMilliseconds(ms));
-        if ( startImmediate ) {
-            return new InternalScheduleOptions( builder.startNow());
+                .withSchedule(
+                        SimpleScheduleBuilder.simpleSchedule().repeatForever().withIntervalInMilliseconds(ms));
+        if (startImmediate) {
+            return new InternalScheduleOptions(builder.startNow());
         } else {
-            return new InternalScheduleOptions( builder.startAt(new Date(System.currentTimeMillis() + ms)) );
+            return new InternalScheduleOptions(builder.startAt(new Date(System.currentTimeMillis() + ms)));
         }
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJob(java.lang.Object, java.util.Map)
      */
-    public void fireJob(final Long bundleId,
-            final Long serviceId,
-            final Object job, final Map<String, Serializable> config)
-    throws SchedulerException {
-        this.scheduleJob(bundleId, serviceId, job,
-                NOW().config(config));
+    public void fireJob(
+            final Long bundleId, final Long serviceId, final Object job, final Map<String, Serializable> config)
+            throws SchedulerException {
+        this.scheduleJob(bundleId, serviceId, job, NOW().config(config));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJobAt(java.lang.String, java.lang.Object, java.util.Map, java.util.Date)
      */
-    public void fireJobAt(final Long bundleId,
+    public void fireJobAt(
+            final Long bundleId,
             final Long serviceId,
-            final String name, final Object job, final Map<String, Serializable> config, final Date date)
-    throws SchedulerException {
-        this.scheduleJob(bundleId, serviceId, job,
-                AT(date).name(name).config(config));
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final Date date)
+            throws SchedulerException {
+        this.scheduleJob(bundleId, serviceId, job, AT(date).name(name).config(config));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJob(java.lang.Object, java.util.Map, int, long)
      */
-    public boolean fireJob(final Long bundleId,
-                           final Long serviceId,
-                           final Object job,
-                           final Map<String, Serializable> config,
-                           final int times,
-                           final long period) {
-        return this.schedule(bundleId, serviceId, job,
-                NOW(times, period).config(config));
+    public boolean fireJob(
+            final Long bundleId,
+            final Long serviceId,
+            final Object job,
+            final Map<String, Serializable> config,
+            final int times,
+            final long period) {
+        return this.schedule(bundleId, serviceId, job, NOW(times, period).config(config));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJobAt(java.lang.String, java.lang.Object, java.util.Map, java.util.Date, int, long)
      */
-    public boolean fireJobAt(final Long bundleId,
-                             final Long serviceId,
-                             final String name,
-                             final Object job,
-                             final Map<String, Serializable> config,
-                             final Date date,
-                             final int times,
-                             final long period) {
-        return this.schedule(bundleId, serviceId, job,
-                AT(date, times, period).name(name).config(config));
+    public boolean fireJobAt(
+            final Long bundleId,
+            final Long serviceId,
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final Date date,
+            final int times,
+            final long period) {
+        return this.schedule(
+                bundleId, serviceId, job, AT(date, times, period).name(name).config(config));
     }
 
     /**
@@ -417,9 +434,9 @@ public class QuartzScheduler implements BundleListener {
     public void removeJob(final Long bundleId, final String jobName) throws NoSuchElementException {
         // as this method might be called from unbind and during
         // unbind a deactivate could happen, we check the scheduler first
-        synchronized ( this.schedulers ) {
-            if ( this.active ) {
-                for(final SchedulerProxy proxy : this.schedulers.values()) {
+        synchronized (this.schedulers) {
+            if (this.active) {
+                for (final SchedulerProxy proxy : this.schedulers.values()) {
                     try {
                         final JobKey key = JobKey.jobKey(jobName);
                         final JobDetail jobdetail = proxy.getScheduler().getJobDetail(key);
@@ -434,98 +451,97 @@ public class QuartzScheduler implements BundleListener {
                 }
             }
         }
-        if ( this.active ) {
+        if (this.active) {
             throw new NoSuchElementException("No job found with name " + jobName);
         }
     }
 
-   /**
+    /**
      * @see org.apache.sling.commons.scheduler.Scheduler#NOW()
      */
     public ScheduleOptions NOW() {
-        return new InternalScheduleOptions( TriggerBuilder.newTrigger()
-                .startNow());
+        return new InternalScheduleOptions(TriggerBuilder.newTrigger().startNow());
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#NOW(int, long)
      */
     public ScheduleOptions NOW(final int times, final long period) {
-        if ( times < 2 && times != -1 ) {
-            return new InternalScheduleOptions(new IllegalArgumentException("Times argument must be higher than 1 or -1"));
+        if (times < 2 && times != -1) {
+            return new InternalScheduleOptions(
+                    new IllegalArgumentException("Times argument must be higher than 1 or -1"));
         }
-        if ( period < 1 ) {
+        if (period < 1) {
             return new InternalScheduleOptions(new IllegalArgumentException("Period argument must be higher than 0"));
         }
         final SimpleScheduleBuilder sb;
-        if ( times == -1 ) {
+        if (times == -1) {
             sb = SimpleScheduleBuilder.simpleSchedule().repeatForever();
         } else {
             sb = SimpleScheduleBuilder.simpleSchedule().withRepeatCount(times - 1);
         }
-        return new InternalScheduleOptions( TriggerBuilder.newTrigger()
-            .startNow()
-            .withSchedule(sb.withIntervalInMilliseconds(period * 1000)));
+        return new InternalScheduleOptions(
+                TriggerBuilder.newTrigger().startNow().withSchedule(sb.withIntervalInMilliseconds(period * 1000)));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#AT(java.util.Date)
      */
     public ScheduleOptions AT(final Date date) {
-        if ( date == null ) {
+        if (date == null) {
             return new InternalScheduleOptions(new IllegalArgumentException("Date can't be null"));
         }
-        return new InternalScheduleOptions( TriggerBuilder.newTrigger()
-            .startAt(date));
+        return new InternalScheduleOptions(TriggerBuilder.newTrigger().startAt(date));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#AT(java.util.Date, int, long)
      */
     public ScheduleOptions AT(final Date date, final int times, final long period) {
-        if ( date == null ) {
+        if (date == null) {
             return new InternalScheduleOptions(new IllegalArgumentException("Date can't be null"));
         }
-        if ( times < 2 && times != -1 ) {
-            return new InternalScheduleOptions(new IllegalArgumentException("Times argument must be higher than 1 or -1"));
+        if (times < 2 && times != -1) {
+            return new InternalScheduleOptions(
+                    new IllegalArgumentException("Times argument must be higher than 1 or -1"));
         }
-        if ( period < 1 ) {
+        if (period < 1) {
             return new InternalScheduleOptions(new IllegalArgumentException("Period argument must be higher than 0"));
         }
 
         final SimpleScheduleBuilder sb;
-        if ( times == -1 ) {
+        if (times == -1) {
             sb = SimpleScheduleBuilder.simpleSchedule().repeatForever();
         } else {
             sb = SimpleScheduleBuilder.simpleSchedule().withRepeatCount(times - 1);
         }
-        return new InternalScheduleOptions( TriggerBuilder.newTrigger()
-            .startAt(date)
-            .withSchedule(sb.withIntervalInMilliseconds(period * 1000)));
+        return new InternalScheduleOptions(
+                TriggerBuilder.newTrigger().startAt(date).withSchedule(sb.withIntervalInMilliseconds(period * 1000)));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#EXPR(java.lang.String)
      */
     public ScheduleOptions EXPR(final String expression) {
-        if ( expression == null ) {
+        if (expression == null) {
             return new InternalScheduleOptions(new IllegalArgumentException("Expression can't be null"));
         }
-        if ( !CronExpression.isValidExpression(expression) ) {
+        if (!CronExpression.isValidExpression(expression)) {
             return new InternalScheduleOptions(new IllegalArgumentException("Expressionis invalid : " + expression));
         }
-        return new InternalScheduleOptions( TriggerBuilder.newTrigger()
-                .withSchedule(CronScheduleBuilder.cronSchedule(expression)));
+        return new InternalScheduleOptions(
+                TriggerBuilder.newTrigger().withSchedule(CronScheduleBuilder.cronSchedule(expression)));
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#schedule(java.lang.Object, org.apache.sling.commons.scheduler.ScheduleOptions)
      */
-    public boolean schedule(final Long bundleId, final Long serviceId, final Object job, final ScheduleOptions options) {
+    public boolean schedule(
+            final Long bundleId, final Long serviceId, final Object job, final ScheduleOptions options) {
         try {
             this.scheduleJob(bundleId, serviceId, job, options);
             return true;
-        } catch (final IllegalArgumentException|SchedulerException e) {
+        } catch (final IllegalArgumentException | SchedulerException e) {
             logger.warn("Exception during scheduling of job " + job.getClass().getName(), e);
             // ignore this and return false
             return false;
@@ -536,9 +552,9 @@ public class QuartzScheduler implements BundleListener {
      * @see org.apache.sling.commons.scheduler.Scheduler#unschedule(java.lang.String)
      */
     public boolean unschedule(final Long bundleId, final String jobName) {
-        if ( jobName != null ) {
-            synchronized ( this.schedulers ) {
-                for(final SchedulerProxy proxy : this.schedulers.values()) {
+        if (jobName != null) {
+            synchronized (this.schedulers) {
+                for (final SchedulerProxy proxy : this.schedulers.values()) {
                     try {
                         final JobKey key = JobKey.jobKey(jobName);
                         final JobDetail jobdetail = proxy.getScheduler().getJobDetail(key);
@@ -562,39 +578,38 @@ public class QuartzScheduler implements BundleListener {
      * @throws IllegalArgumentException If the preconditions are not met
      */
     private void scheduleJob(final Long bundleId, final Long serviceId, final Object job, final ScheduleOptions options)
-    throws SchedulerException {
+            throws SchedulerException {
         this.checkJob(job);
 
-        if ( !(options instanceof InternalScheduleOptions)) {
+        if (!(options instanceof InternalScheduleOptions)) {
             throw new IllegalArgumentException("Options has not been created via schedule or is null.");
         }
-        final InternalScheduleOptions opts = (InternalScheduleOptions)options;
+        final InternalScheduleOptions opts = (InternalScheduleOptions) options;
 
-        if ( opts.argumentException != null ) {
+        if (opts.argumentException != null) {
             throw opts.argumentException;
         }
 
-        synchronized ( this.schedulers ) {
+        synchronized (this.schedulers) {
             // as this method might be called from unbind and during
             // unbind a deactivate could happen, we check the scheduler first
             final String poolName = getThreadPoolName(opts.threadPoolName);
             SchedulerProxy proxy = null;
-            synchronized ( this.schedulers ) {
-                if ( this.active ) {
+            synchronized (this.schedulers) {
+                if (this.active) {
                     proxy = this.schedulers.get(poolName);
-                    if ( proxy == null ) {
+                    if (proxy == null) {
                         proxy = new SchedulerProxy(this.threadPoolManager, poolName);
                         this.schedulers.put(poolName, proxy);
                     }
                 }
             }
-            if ( proxy == null ) {
+            if (proxy == null) {
                 throw new IllegalStateException("Scheduler is not available anymore.");
             }
 
-
             final String name;
-            if ( opts.name != null ) {
+            if (opts.name != null) {
                 // if there is already a job with the name, remove it first
                 this.unschedule(bundleId, opts.name);
                 name = opts.name;
@@ -619,7 +634,7 @@ public class QuartzScheduler implements BundleListener {
      * @return All current schedulers
      */
     Map<String, SchedulerProxy> getSchedulers() {
-        synchronized ( this.schedulers ) {
+        synchronized (this.schedulers) {
             return new HashMap<>(this.schedulers);
         }
     }

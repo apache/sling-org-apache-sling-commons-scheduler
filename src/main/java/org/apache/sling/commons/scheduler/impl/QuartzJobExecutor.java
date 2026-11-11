@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
 
@@ -27,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import org.apache.sling.commons.scheduler.JobContext;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.quartz.Job;
@@ -35,10 +40,6 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 
 /**
  * This component is responsible to launch a {@link org.apache.sling.commons.scheduler.Job}
@@ -90,11 +91,12 @@ public class QuartzJobExecutor implements Job {
         public JobDesc(final JobDataMap data) {
             this.job = data.get(QuartzScheduler.DATA_MAP_OBJECT);
             this.name = (String) data.get(QuartzScheduler.DATA_MAP_NAME);
-            this.providedName = (String)data.get(QuartzScheduler.DATA_MAP_PROVIDED_NAME);
-            this.runOn = (String[])data.get(QuartzScheduler.DATA_MAP_RUN_ON);
+            this.providedName = (String) data.get(QuartzScheduler.DATA_MAP_PROVIDED_NAME);
+            this.runOn = (String[]) data.get(QuartzScheduler.DATA_MAP_RUN_ON);
 
             // initialize metrics fields
-            final QuartzScheduler localQuartzScheduler = (QuartzScheduler) data.get(QuartzScheduler.DATA_MAP_QUARTZ_SCHEDULER);
+            final QuartzScheduler localQuartzScheduler =
+                    (QuartzScheduler) data.get(QuartzScheduler.DATA_MAP_QUARTZ_SCHEDULER);
             MetricRegistry localMetricsService = null;
             ConfigHolder localConfigHolder = null;
             if (localQuartzScheduler != null) {
@@ -103,7 +105,9 @@ public class QuartzJobExecutor implements Job {
                 localConfigHolder = localQuartzScheduler.configHolder;
             }
             // mainConfiguration might be null during deactivation
-            slowThresholdMillis = localConfigHolder != null ? localConfigHolder.slowThresholdMillis() : DEFAULT_SLOW_JOB_THRESHOLD_MILLIS;
+            slowThresholdMillis = localConfigHolder != null
+                    ? localConfigHolder.slowThresholdMillis()
+                    : DEFAULT_SLOW_JOB_THRESHOLD_MILLIS;
 
             String metricsSuffix = "";
             final String filterName = MetricsHelper.deriveFilterName(localConfigHolder, job);
@@ -118,11 +122,12 @@ public class QuartzJobExecutor implements Job {
                 }
             }
 
-            if ( localMetricsService != null ) {
+            if (localMetricsService != null) {
                 metricRegistry = localMetricsService;
                 runningJobsCounter = metricRegistry.counter(QuartzScheduler.METRICS_NAME_RUNNING_JOBS + metricsSuffix);
                 jobDurationTimer = metricRegistry.timer(QuartzScheduler.METRICS_NAME_TIMER + metricsSuffix);
-                overallRunningJobsCounter = metricsSuffix.length() == 0 ? null
+                overallRunningJobsCounter = metricsSuffix.length() == 0
+                        ? null
                         : metricRegistry.counter(QuartzScheduler.METRICS_NAME_RUNNING_JOBS);
             } else {
                 metricRegistry = null;
@@ -137,7 +142,7 @@ public class QuartzJobExecutor implements Job {
             if (overallRunningJobsCounter != null) {
                 overallRunningJobsCounter.inc();
             }
-            if ( runningJobsCounter != null ) {
+            if (runningJobsCounter != null) {
                 runningJobsCounter.inc();
             }
             jobStart = System.currentTimeMillis();
@@ -152,7 +157,7 @@ public class QuartzJobExecutor implements Job {
             if (overallRunningJobsCounter != null) {
                 overallRunningJobsCounter.dec();
             }
-            if ( runningJobsCounter != null ) {
+            if (runningJobsCounter != null) {
                 runningJobsCounter.dec();
             }
             final long elapsedMillis = System.currentTimeMillis() - jobStart;
@@ -162,14 +167,14 @@ public class QuartzJobExecutor implements Job {
                 // if the job was slow we (only) add it to a separate '.slow.' timer
                 // the idea being to not "pollute" the normal timer which would
                 // get quite skewed metrics otherwise with slow jobs around
-                if ( metricRegistry != null ) {
-                    final String slowTimerName = QuartzScheduler.METRICS_NAME_TIMER + ".slow."
-                            + MetricsHelper.asMetricsSuffix(this.name);
+                if (metricRegistry != null) {
+                    final String slowTimerName =
+                            QuartzScheduler.METRICS_NAME_TIMER + ".slow." + MetricsHelper.asMetricsSuffix(this.name);
                     metricRegistry.timer(slowTimerName).update(elapsedMillis, TimeUnit.MILLISECONDS);
                 }
             } else {
                 // if the job was not slow, then measure it normally
-                if ( jobDurationTimer != null ) {
+                if (jobDurationTimer != null) {
                     jobDurationTimer.update(elapsedMillis, TimeUnit.MILLISECONDS);
                 }
             }
@@ -180,10 +185,11 @@ public class QuartzJobExecutor implements Job {
         }
 
         public String getKey() {
-            String key = job.getClass().getPackage() != null ?
-                job.getClass().getPackage().getName() : job.getClass().getName();
+            String key = job.getClass().getPackage() != null
+                    ? job.getClass().getPackage().getName()
+                    : job.getClass().getName();
 
-            if ( providedName != null ) {
+            if (providedName != null) {
                 key = key + "-" + providedName;
             }
             return key;
@@ -192,11 +198,11 @@ public class QuartzJobExecutor implements Job {
         @Override
         public String toString() {
             final String runOnInfo;
-            if ( this.runOn == null ) {
+            if (this.runOn == null) {
                 runOnInfo = null;
-            } else if ( isRunOnLeader() ) {
+            } else if (isRunOnLeader()) {
                 runOnInfo = Scheduler.VALUE_RUN_ON_LEADER;
-            } else if ( isRunOnSingle() ) {
+            } else if (isRunOnSingle()) {
                 runOnInfo = Scheduler.VALUE_RUN_ON_SINGLE;
             } else {
                 runOnInfo = Arrays.toString(runOn);
@@ -205,7 +211,7 @@ public class QuartzJobExecutor implements Job {
         }
 
         public boolean isRunOnLeader() {
-           return runOn != null && runOn.length == 1 && Scheduler.VALUE_RUN_ON_LEADER.equals(runOn[0]);
+            return runOn != null && runOn.length == 1 && Scheduler.VALUE_RUN_ON_LEADER.equals(runOn[0]);
         }
 
         public boolean isRunOnSingle() {
@@ -213,19 +219,21 @@ public class QuartzJobExecutor implements Job {
         }
 
         public String shouldRunAsSingleOn() {
-            if ( !isRunOnSingle() ) {
+            if (!isRunOnSingle()) {
                 return null;
             }
             final String[] ids = QuartzJobExecutor.SLING_IDS.get();
             boolean schedule = false;
-            if ( ids != null ) {
+            if (ids != null) {
                 int index = 0;
                 try {
                     final MessageDigest m = MessageDigest.getInstance("MD5");
                     m.reset();
                     m.update(getKey().getBytes("UTF-8"));
-                    index = new BigInteger(1, m.digest()).mod(BigInteger.valueOf(ids.length)).intValue();
-                } catch ( final IOException | NoSuchAlgorithmException ex ) {
+                    index = new BigInteger(1, m.digest())
+                            .mod(BigInteger.valueOf(ids.length))
+                            .intValue();
+                } catch (final IOException | NoSuchAlgorithmException ex) {
                     // although this should never happen (MD5 and UTF-8 are always available) we consider
                     // this an error case
                     LoggerFactory.getLogger(getClass().getName()).error("Unable to distribute scheduled " + this, ex);
@@ -239,10 +247,9 @@ public class QuartzJobExecutor implements Job {
         }
     }
 
-    private boolean checkDiscoveryAvailable(final Logger logger,
-            final JobDesc desc) {
-        if ( DISCOVERY_AVAILABLE.get() ) {
-            if ( DISCOVERY_INFO_AVAILABLE.get() ) {
+    private boolean checkDiscoveryAvailable(final Logger logger, final JobDesc desc) {
+        if (DISCOVERY_AVAILABLE.get()) {
+            if (DISCOVERY_INFO_AVAILABLE.get()) {
                 return true;
             } else {
                 logger.debug("No discovery info available. Excluding {}.", desc);
@@ -254,61 +261,59 @@ public class QuartzJobExecutor implements Job {
         }
     }
 
-    private String checkSlingId(final Logger logger,
-            final JobDesc desc) {
+    private String checkSlingId(final Logger logger, final JobDesc desc) {
         final String myId = SLING_ID;
-        if ( myId == null ) {
+        if (myId == null) {
             logger.error("No Sling ID available, therefore not executing {}.", desc);
             return null;
         }
         return myId;
     }
 
-    private boolean shouldRun(final Logger logger,
-            final JobDesc desc) {
-        if ( desc.runOn != null ) {
-            if ( desc.isRunOnLeader() ) {
+    private boolean shouldRun(final Logger logger, final JobDesc desc) {
+        if (desc.runOn != null) {
+            if (desc.isRunOnLeader()) {
                 // leader
-                if ( !checkDiscoveryAvailable(logger, desc) ) {
+                if (!checkDiscoveryAvailable(logger, desc)) {
                     return false;
                 }
-                if ( !IS_LEADER.get() ) {
+                if (!IS_LEADER.get()) {
                     logger.debug("Excluding {} - instance is not leader", desc);
                     return false;
                 }
-            } else if ( desc.isRunOnSingle() ) {
+            } else if (desc.isRunOnSingle()) {
                 // single instance
-                if ( !checkDiscoveryAvailable(logger, desc) ) {
+                if (!checkDiscoveryAvailable(logger, desc)) {
                     return false;
                 }
-                if ( FORCE_LEADER.get() ) {
-                    if ( !IS_LEADER.get() ) {
+                if (FORCE_LEADER.get()) {
+                    if (!IS_LEADER.get()) {
                         logger.debug("Excluding {} - instance is not leader", desc);
                         return false;
                     }
                 } else {
                     final String myId = checkSlingId(logger, desc);
-                    if ( myId == null ) {
+                    if (myId == null) {
                         return false;
                     }
-                    if ( desc.shouldRunAsSingleOn() != null ) {
+                    if (desc.shouldRunAsSingleOn() != null) {
                         logger.debug("Excluding {} - distributed to different Sling instance", desc);
                         return false;
                     }
                 }
             } else { // sling IDs
                 final String myId = checkSlingId(logger, desc);
-                if ( myId == null ) {
+                if (myId == null) {
                     return false;
                 } else {
                     boolean schedule = false;
-                    for(final String id : desc.runOn ) {
-                        if ( myId.equals(id) ) {
+                    for (final String id : desc.runOn) {
+                        if (myId.equals(id)) {
                             schedule = true;
                             break;
                         }
                     }
-                    if ( !schedule ) {
+                    if (!schedule) {
                         logger.debug("Excluding job {} - different Sling ID", desc);
                         return false;
                     }
@@ -326,10 +331,10 @@ public class QuartzJobExecutor implements Job {
 
         final JobDataMap data = context.getJobDetail().getJobDataMap();
         final JobDesc desc = new JobDesc(data);
-        final Logger logger = (Logger)data.get(QuartzScheduler.DATA_MAP_LOGGER);
+        final Logger logger = (Logger) data.get(QuartzScheduler.DATA_MAP_LOGGER);
 
         // check run on information
-        if ( !shouldRun(logger, desc) ) {
+        if (!shouldRun(logger, desc)) {
             return;
         }
 
@@ -341,7 +346,8 @@ public class QuartzJobExecutor implements Job {
             logger.debug("Executing job {}", desc);
             if (desc.job instanceof org.apache.sling.commons.scheduler.Job) {
                 @SuppressWarnings("unchecked")
-                final Map<String, Serializable> configuration = (Map<String, Serializable>) data.get(QuartzScheduler.DATA_MAP_CONFIGURATION);
+                final Map<String, Serializable> configuration =
+                        (Map<String, Serializable>) data.get(QuartzScheduler.DATA_MAP_CONFIGURATION);
 
                 final JobContext jobCtx = new JobContextImpl(desc.name, configuration);
                 ((org.apache.sling.commons.scheduler.Job) desc.job).execute(jobCtx);

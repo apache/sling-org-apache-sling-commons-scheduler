@@ -1,24 +1,22 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Field;
 import java.util.Dictionary;
@@ -40,6 +38,10 @@ import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 public class WhiteboardHandlerTest {
     private WhiteboardHandler handler;
     private BundleContext context;
@@ -50,14 +52,14 @@ public class WhiteboardHandlerTest {
         context = MockOsgi.newBundleContext();
         handler = new WhiteboardHandler();
 
-        //Getting private field through injection
+        // Getting private field through injection
         Field schedulerField = WhiteboardHandler.class.getDeclaredField("scheduler");
         schedulerField.setAccessible(true);
 
         // Creating quartz scheduler for private field and activating it
         quartzScheduler = ActivatedQuartzSchedulerFactory.create(context, "testName");
 
-        //Injecting quartzScheduler to WhiteboardHandler
+        // Injecting quartzScheduler to WhiteboardHandler
         schedulerField.set(handler, quartzScheduler);
     }
 
@@ -83,7 +85,8 @@ public class WhiteboardHandlerTest {
         handler.register(reference, service);
         JobKey jobKey = JobKey.jobKey(schedulerName);
 
-        assertNotNull(quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
+        assertNotNull(
+                quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
     }
 
     @Test
@@ -104,18 +107,20 @@ public class WhiteboardHandlerTest {
         serviceProps.put(Constants.SERVICE_PID, "1");
         serviceProps.put(Constants.SERVICE_ID, 1L);
 
-        //Register service only to get a reference of it.
-        //This reference is needed to test our method.
+        // Register service only to get a reference of it.
+        // This reference is needed to test our method.
         final ServiceRegistration<?> reg = context.registerService(Runnable.class.getName(), service, serviceProps);
         ServiceReference<?> reference = reg.getReference();
         handler.register(reference, service);
         JobKey jobKey = JobKey.jobKey(schedulerName);
 
-        assertNotNull(quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
+        assertNotNull(
+                quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
 
         reg.unregister();
         handler.unregister(reference);
-        assertNull(quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
+        assertNull(
+                quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey));
     }
 
     // SLING-7037
@@ -140,11 +145,11 @@ public class WhiteboardHandlerTest {
         handler.register(reference, service);
         JobKey jobKey = JobKey.jobKey(schedulerName);
 
-        JobDetail jobDetail = quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey);
+        JobDetail jobDetail =
+                quartzScheduler.getSchedulers().get("testName").getScheduler().getJobDetail(jobKey);
         assertNotNull(jobDetail);
         assertEquals(schedulerName, jobDetail.getJobDataMap().getString(QuartzScheduler.DATA_MAP_PROVIDED_NAME));
-        assertEquals(schedulerName,
-                jobDetail.getJobDataMap().getString(QuartzScheduler.DATA_MAP_NAME));
+        assertEquals(schedulerName, jobDetail.getJobDataMap().getString(QuartzScheduler.DATA_MAP_NAME));
     }
 
     @Test
@@ -166,13 +171,17 @@ public class WhiteboardHandlerTest {
         handler.register(reference, service);
 
         JobDetail jobDetail = null;
-        org.quartz.Scheduler scheduler = quartzScheduler.getSchedulers().get("testName").getScheduler();
+        org.quartz.Scheduler scheduler =
+                quartzScheduler.getSchedulers().get("testName").getScheduler();
         final List<String> groups = scheduler.getJobGroupNames();
-        for(final String group : groups) {
+        for (final String group : groups) {
             final Set<JobKey> keys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(group));
-            for(final JobKey key : keys) {
+            for (final JobKey key : keys) {
                 final JobDetail detail = scheduler.getJobDetail(key);
-                if ( detail != null && detail.getJobDataMap().get(QuartzScheduler.DATA_MAP_SERVICE_ID).equals(reg.getReference().getProperty(Constants.SERVICE_ID))) {
+                if (detail != null
+                        && detail.getJobDataMap()
+                                .get(QuartzScheduler.DATA_MAP_SERVICE_ID)
+                                .equals(reg.getReference().getProperty(Constants.SERVICE_ID))) {
                     jobDetail = detail;
                     break;
                 }

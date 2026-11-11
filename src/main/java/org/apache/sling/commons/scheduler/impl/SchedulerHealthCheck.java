@@ -22,9 +22,14 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
+import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.HealthCheck;
 import org.apache.felix.hc.api.Result;
-import org.apache.felix.hc.api.FormattingResultLog;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -36,12 +41,6 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-
 /**
  * HealthCheck that checks if the Sling Scheduler has any long-running (by
  * default more than 60 seconds) Quartz-Jobs. If there are any long running
@@ -49,9 +48,13 @@ import com.codahale.metrics.MetricRegistry;
  * to preventing other Quartz-Jobs from executing properly. The threshold
  * (60sec) is configurable.
  */
-@Component(service = HealthCheck.class, property = { Constants.SERVICE_VENDOR + "=The Apache Software Foundation",
-        HealthCheck.NAME + "=Scheduler Health Check",
-        HealthCheck.MBEAN_NAME + "=slingCommonsSchedulerHealthCheck" })
+@Component(
+        service = HealthCheck.class,
+        property = {
+            Constants.SERVICE_VENDOR + "=The Apache Software Foundation",
+            HealthCheck.NAME + "=Scheduler Health Check",
+            HealthCheck.MBEAN_NAME + "=slingCommonsSchedulerHealthCheck"
+        })
 @Designate(ocd = SchedulerHealthCheck.Config.class)
 public class SchedulerHealthCheck implements HealthCheck {
 
@@ -60,10 +63,15 @@ public class SchedulerHealthCheck implements HealthCheck {
     @Reference
     private MetricRegistry metricRegistry;
 
-    @ObjectClassDefinition(name = "Apache Sling Scheduler Health Check Config", description = "Apache Sling Scheduler Health Check Config")
+    @ObjectClassDefinition(
+            name = "Apache Sling Scheduler Health Check Config",
+            description = "Apache Sling Scheduler Health Check Config")
     public @interface Config {
-        @AttributeDefinition(name = "Acceptable Duration Millis", description = "Maximum a job should take (in millis) for it to be acceptable. "
-                + "Best to set this equal or higher to org.apache.sling.commons.scheduler.impl.QuartzScheduler.slowThresholdMillis")
+        @AttributeDefinition(
+                name = "Acceptable Duration Millis",
+                description =
+                        "Maximum a job should take (in millis) for it to be acceptable. "
+                                + "Best to set this equal or higher to org.apache.sling.commons.scheduler.impl.QuartzScheduler.slowThresholdMillis")
         long max_quartzJob_duration_acceptable() default DEFAULT_MAX_QUARTZJOB_DURATION_ACCEPTABLE;
     }
 
@@ -112,10 +120,12 @@ public class SchedulerHealthCheck implements HealthCheck {
                 }
             });
             if (oldestGaugeSet.isEmpty()) {
-                resultLog.warn("Sling Scheduler cannot find any metrics gauge starting with {}",
+                resultLog.warn(
+                        "Sling Scheduler cannot find any metrics gauge starting with {}",
                         QuartzScheduler.METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS);
             } else {
-                final long oldestRunningJobInMillis = (Long) oldestGaugeSet.values().iterator().next().getValue();
+                final long oldestRunningJobInMillis =
+                        (Long) oldestGaugeSet.values().iterator().next().getValue();
                 if (oldestRunningJobInMillis <= -1) {
                     resultLog.info("Sling Scheduler has no long-running Quartz-Jobs at this moment.");
                 } else if (oldestRunningJobInMillis > maxQuartzJobDurationAcceptable) {
@@ -134,7 +144,8 @@ public class SchedulerHealthCheck implements HealthCheck {
                                 oldestRunningJobInMillis);
                     } else {
                         final StringBuffer slowNames = new StringBuffer();
-                        final Iterator<Entry<String, Gauge>> it = allGaugeSet.entrySet().iterator();
+                        final Iterator<Entry<String, Gauge>> it =
+                                allGaugeSet.entrySet().iterator();
                         int numSlow = 0;
                         while (it.hasNext()) {
                             final Entry<String, Gauge> e = it.next();
@@ -153,14 +164,18 @@ public class SchedulerHealthCheck implements HealthCheck {
                         if (numSlow == 1) {
                             resultLog.critical(
                                     "Sling Scheduler has 1 long-running Quartz-Job which is already running for {}ms: {}.",
-                                    oldestRunningJobInMillis, slowNames);
+                                    oldestRunningJobInMillis,
+                                    slowNames);
                         } else {
                             resultLog.critical(
                                     "Sling Scheduler has {} long-running Quartz-Jobs with the oldest running for {}ms: {}.",
-                                    numSlow, oldestRunningJobInMillis, slowNames);
+                                    numSlow,
+                                    oldestRunningJobInMillis,
+                                    slowNames);
                         }
                     }
-                    resultLog.info("More details are exposed in metrics including gauges for slow Quartz-Jobs containing shortened job names.");
+                    resultLog.info(
+                            "More details are exposed in metrics including gauges for slow Quartz-Jobs containing shortened job names.");
                     resultLog.info("Furthermore, thread-dumps can also help narrow down slow Quartz-Jobs.");
                 } else {
                     resultLog.info(
@@ -168,8 +183,9 @@ public class SchedulerHealthCheck implements HealthCheck {
                             oldestRunningJobInMillis);
                 }
                 resultLog.info("The total number of currently runnning Quartz-Jobs is {}.", runningCount);
-                resultLog.info("[The maximum acceptable duration a Quartz-Job should run for is configured to {}ms. "
-                        + "This duration can be changed in the QuartzScheduler via the configuration manager]({})", 
+                resultLog.info(
+                        "[The maximum acceptable duration a Quartz-Job should run for is configured to {}ms. "
+                                + "This duration can be changed in the QuartzScheduler via the configuration manager]({})",
                         maxQuartzJobDurationAcceptable,
                         "/system/console/configMgr/org.apache.sling.commons.scheduler.impl.QuartzScheduler");
             }
@@ -180,5 +196,4 @@ public class SchedulerHealthCheck implements HealthCheck {
 
         return new Result(resultLog);
     }
-
 }
