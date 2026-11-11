@@ -51,7 +51,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -309,7 +309,6 @@ public class QuartzSchedulerTest {
     public void testBundleChangedWithStartedBundle() throws SchedulerException {
         String firstJob = "testName1";
         String secondJob = "testName2";
-        when(bundle.getBundleId()).thenReturn(2L);
 
         quartzScheduler.addJob(1L, 1L, firstJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
         quartzScheduler.addJob(2L, 2L, secondJob, new Thread(), new HashMap<String, Serializable>(), "0 * * * * ?", true);
