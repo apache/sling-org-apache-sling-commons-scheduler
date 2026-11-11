@@ -1,29 +1,31 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.junit.Test;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -39,13 +41,13 @@ public class InternalScheduleOptionsTest {
         assertTrue(trigger == test.trigger);
         assertNull("If trigger was set, argumentException must be null", test.argumentException);
 
-        String[] onLeader = new String[]{Scheduler.VALUE_RUN_ON_LEADER};
+        String[] onLeader = new String[] {Scheduler.VALUE_RUN_ON_LEADER};
         test.onLeaderOnly(true);
         assertArrayEquals(onLeader, test.runOn);
         test.onLeaderOnly(false);
         assertNull(test.runOn);
 
-        String[] onSingle = new String[]{Scheduler.VALUE_RUN_ON_SINGLE};
+        String[] onSingle = new String[] {Scheduler.VALUE_RUN_ON_SINGLE};
         test.onSingleInstanceOnly(true);
         assertArrayEquals(onSingle, test.runOn);
         test.onSingleInstanceOnly(false);
@@ -62,7 +64,7 @@ public class InternalScheduleOptionsTest {
         test.canRunConcurrently(true);
         assertTrue(test.canRunConcurrently);
 
-        String[] testStringArray = new String[]{"test1", "test2", "test3"};
+        String[] testStringArray = new String[] {"test1", "test2", "test3"};
         test.onInstancesOnly(testStringArray);
         assertArrayEquals(testStringArray, test.runOn);
     }

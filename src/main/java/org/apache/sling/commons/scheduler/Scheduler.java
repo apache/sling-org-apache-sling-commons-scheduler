@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler;
 
@@ -196,7 +198,7 @@ public interface Scheduler {
      * Then the scheduler waits desired interval and executes all remaining triggers.
      * Effectively the first fire time of the misfired trigger is moved to current time with no other changes.
      * </ol>
-     * 
+     *
      * @param date The date this job should be run.
      * @param times The number of times this job should be started (must be higher than 1 or
      *              -1 for endless)
@@ -218,7 +220,7 @@ public interface Scheduler {
     ScheduleOptions EXPR(String expression);
 
     /**
-    /**
+     * /**
      * Schedule a time based job.
      * Note that if a job with the same name has already been added, the old job is cancelled and this new job replaces
      * the old job.
@@ -233,8 +235,13 @@ public interface Scheduler {
      * @deprecated Use {@link #schedule(Object, ScheduleOptions)} instead.
      */
     @Deprecated
-    void addJob(String name, Object job, Map<String, Serializable> config, String schedulingExpression, boolean canRunConcurrently)
-    throws Exception;
+    void addJob(
+            String name,
+            Object job,
+            Map<String, Serializable> config,
+            String schedulingExpression,
+            boolean canRunConcurrently)
+            throws Exception;
 
     /**
      * Schedule a periodic job.
@@ -252,8 +259,9 @@ public interface Scheduler {
      * @deprecated Use {@link #schedule(Object, ScheduleOptions)} instead.
      */
     @Deprecated
-    void addPeriodicJob(String name, Object job, Map<String, Serializable> config, long period, boolean canRunConcurrently)
-    throws Exception;
+    void addPeriodicJob(
+            String name, Object job, Map<String, Serializable> config, long period, boolean canRunConcurrently)
+            throws Exception;
 
     /**
      * Schedule a periodic job.
@@ -272,9 +280,14 @@ public interface Scheduler {
      * @deprecated Use {@link #schedule(Object, ScheduleOptions)} instead.
      */
     @Deprecated
-    void addPeriodicJob(String name, Object job, Map<String, Serializable> config, long period, boolean canRunConcurrently,
+    void addPeriodicJob(
+            String name,
+            Object job,
+            Map<String, Serializable> config,
+            long period,
+            boolean canRunConcurrently,
             boolean startImmediate)
-    throws Exception;
+            throws Exception;
 
     /**
      * Fire a job immediately and only once.
@@ -286,8 +299,7 @@ public interface Scheduler {
      * @deprecated Use {@link #schedule(Object, ScheduleOptions)} instead.
      */
     @Deprecated
-    void fireJob(Object job, Map<String, Serializable> config)
-    throws Exception;
+    void fireJob(Object job, Map<String, Serializable> config) throws Exception;
 
     /**
      * Fire a job immediately more than once.
@@ -318,8 +330,7 @@ public interface Scheduler {
      * @deprecated Use {@link #schedule(Object, ScheduleOptions)} instead.
      */
     @Deprecated
-    void fireJobAt(String name, Object job, Map<String, Serializable> config, Date date)
-    throws Exception;
+    void fireJobAt(String name, Object job, Map<String, Serializable> config, Date date) throws Exception;
 
     /**
      * Fire a job once at a specific date, several times with a given interval.
@@ -348,6 +359,5 @@ public interface Scheduler {
      * @deprecated Use {@link #unschedule(String)} instead.
      */
     @Deprecated
-    void removeJob(String name)
-    throws NoSuchElementException;
+    void removeJob(String name) throws NoSuchElementException;
 }

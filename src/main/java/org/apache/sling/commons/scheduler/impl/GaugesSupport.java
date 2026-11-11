@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
 
@@ -25,6 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -39,14 +43,7 @@ import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-
-@Component(
-        property = {
-                Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
-        }
-    )
+@Component(property = {Constants.SERVICE_VENDOR + "=The Apache Software Foundation"})
 /**
  * This service creates gauges for getting how long the oldest running job is
  * already running.
@@ -62,7 +59,7 @@ import com.codahale.metrics.MetricRegistry;
  */
 public class GaugesSupport {
 
-    private final static String CLEANUP_JOB_NAME = "org.apache.sling.commons.scheduler.impl.GaugesSupport.CleanupJob";
+    private static final String CLEANUP_JOB_NAME = "org.apache.sling.commons.scheduler.impl.GaugesSupport.CleanupJob";
 
     @Reference
     private MetricRegistry metricRegistry;
@@ -79,7 +76,7 @@ public class GaugesSupport {
             this.jobExecutionContext = jobExecutionContext;
             this.gaugeName = gaugeName;
 
-            metricRegistry.register(gaugeName,  this);
+            metricRegistry.register(gaugeName, this);
         }
 
         private void unregister() {
@@ -131,6 +128,7 @@ public class GaugesSupport {
 
     @SuppressWarnings("rawtypes")
     private final Map<String, ServiceRegistration> gaugeRegistrations = new HashMap<>();
+
     private final Map<String, TemporaryGauge> temporaryGauges = new HashMap<>();
 
     private volatile boolean active = true;
@@ -153,23 +151,29 @@ public class GaugesSupport {
 
         bundleId = ctx.getBundle().getBundleId();
         try {
-            quartzScheduler.addPeriodicJob(bundleId, null, CLEANUP_JOB_NAME, new Runnable() {
+            quartzScheduler.addPeriodicJob(
+                    bundleId,
+                    null,
+                    CLEANUP_JOB_NAME,
+                    new Runnable() {
 
-                @Override
-                public void run() {
-                    if (active) {
-                        cleanupTemporaryGauges();
-                    } // if the GaugesSupport isn't active anymore it is so
-                      // because
-                      // the QuartzScheduler was deactivated - which means we
-                      // don't
-                      // have to unregister the periodic job here.
-                    else {
-                        logger.debug("run: late executed periodic cleanup job - ignoring");
-                    }
-                }
-
-            }, null, 1800 /* 1800sec == 30min */, false);
+                        @Override
+                        public void run() {
+                            if (active) {
+                                cleanupTemporaryGauges();
+                            } // if the GaugesSupport isn't active anymore it is so
+                            // because
+                            // the QuartzScheduler was deactivated - which means we
+                            // don't
+                            // have to unregister the periodic job here.
+                            else {
+                                logger.debug("run: late executed periodic cleanup job - ignoring");
+                            }
+                        }
+                    },
+                    null,
+                    1800 /* 1800sec == 30min */,
+                    false);
         } catch (SchedulerException e) {
             throw new RuntimeException("Could not activate GaugesSupport due to " + e, e);
         }
@@ -199,27 +203,34 @@ public class GaugesSupport {
 
     private void registerGauges() {
         createGauge(configHolder, null, null, QuartzScheduler.METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS);
-        createGauge(configHolder, configHolder.poolName(), null,
+        createGauge(
+                configHolder,
+                configHolder.poolName(),
+                null,
                 QuartzScheduler.METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS + ".tp." + configHolder.poolName());
         if (configHolder.allowedPoolNames() != null) {
             for (String tpName : configHolder.allowedPoolNames()) {
-                createGauge(configHolder, tpName, null,
+                createGauge(
+                        configHolder,
+                        tpName,
+                        null,
                         QuartzScheduler.METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS + ".tp." + tpName);
             }
         }
         for (Map.Entry<String, String> entry : configHolder.getFilterSuffixes().entrySet()) {
             final String name = entry.getKey();
             final String filterName = entry.getValue();
-            createGauge(configHolder, null, filterName,
+            createGauge(
+                    configHolder,
+                    null,
+                    filterName,
                     QuartzScheduler.METRICS_NAME_OLDEST_RUNNING_JOB_MILLIS + ".filter." + name);
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private void createGauge(final ConfigHolder configHolder,
-            final String tpName,
-            final String filterName,
-            final String gaugeName) {
+    private void createGauge(
+            final ConfigHolder configHolder, final String tpName, final String filterName, final String gaugeName) {
         final Gauge gauge = new Gauge() {
             @Override
             public Long getValue() {
@@ -234,9 +245,8 @@ public class GaugesSupport {
         registeredGaugeNameList.add(gaugeName);
     }
 
-    private Long getOldestRunningJobMillis(final ConfigHolder configHolder,
-            final String threadPoolNameOrNull,
-            final String filterNameOrNull) {
+    private Long getOldestRunningJobMillis(
+            final ConfigHolder configHolder, final String threadPoolNameOrNull, final String filterNameOrNull) {
         final QuartzScheduler localQuartzScheduler = quartzScheduler;
         if (localQuartzScheduler == null) {
             // could happen during deactivation
@@ -260,8 +270,8 @@ public class GaugesSupport {
             // (hence we iterate over everything but using the filter)
             for (Map.Entry<String, SchedulerProxy> entry : schedulers.entrySet()) {
                 SchedulerProxy schedulerProxy = entry.getValue();
-                oldestDate = olderOf(oldestDate,
-                        getOldestRunningJobDate(configHolder, schedulerProxy, filterNameOrNull));
+                oldestDate =
+                        olderOf(oldestDate, getOldestRunningJobDate(configHolder, schedulerProxy, filterNameOrNull));
             }
         }
         if (oldestDate == null) {
@@ -271,9 +281,8 @@ public class GaugesSupport {
         }
     }
 
-    private Date getOldestRunningJobDate(final ConfigHolder configHolder,
-            final SchedulerProxy schedulerProxy,
-            final String filterNameOrNull) {
+    private Date getOldestRunningJobDate(
+            final ConfigHolder configHolder, final SchedulerProxy schedulerProxy, final String filterNameOrNull) {
         if (schedulerProxy == null) {
             return null;
         }
@@ -287,8 +296,7 @@ public class GaugesSupport {
         } catch (SchedulerException e) {
             logger.warn("getValue: could not get currently executing jobs due to Exception: " + e, e);
         }
-        if (currentlyExecutingJobs == null)
-            return null;
+        if (currentlyExecutingJobs == null) return null;
         Date oldestDate = null;
         for (JobExecutionContext jobExecutionContext : currentlyExecutingJobs) {
             if (jobExecutionContext == null) {
@@ -325,10 +333,8 @@ public class GaugesSupport {
     }
 
     private static Date olderOf(Date date1, final Date date2) {
-        if (date1 == null)
-            return date2;
-        if (date2 == null)
-            return date1;
+        if (date1 == null) return date2;
+        if (date2 == null) return date1;
         if (date2.before(date1)) {
             return date2;
         } else {
@@ -381,7 +387,8 @@ public class GaugesSupport {
             localTemporaryGauges = new HashMap<>(temporaryGauges);
         }
 
-        final Iterator<Entry<String, ServiceRegistration>> it = localGaugeRegistrations.entrySet().iterator();
+        final Iterator<Entry<String, ServiceRegistration>> it =
+                localGaugeRegistrations.entrySet().iterator();
         while (it.hasNext()) {
             final Entry<String, ServiceRegistration> e = it.next();
             logger.debug("unregisterGauges: unregistering gauge : " + e.getKey());
@@ -413,5 +420,4 @@ public class GaugesSupport {
 
         unregisterGauges();
     }
-
 }
