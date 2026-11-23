@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
 
@@ -37,12 +39,9 @@ import org.osgi.service.component.annotations.ServiceScope;
  * API however in addition each method gets the using bundleId.
  */
 @Component(
-    service = Scheduler.class,
-    scope = ServiceScope.BUNDLE,
-    property = {
-            Constants.SERVICE_VENDOR + "=The Apache Software Foundation"
-    }
-)
+        service = Scheduler.class,
+        scope = ServiceScope.BUNDLE,
+        property = {Constants.SERVICE_VENDOR + "=The Apache Software Foundation"})
 public class SchedulerServiceFactory implements Scheduler {
 
     private long bundleId;
@@ -115,9 +114,13 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#addJob(java.lang.String, java.lang.Object, java.util.Map, java.lang.String, boolean)
      */
     @Override
-    public void addJob(final String name, final Object job,
-            final Map<String, Serializable> config, final String schedulingExpression,
-            final boolean canRunConcurrently) throws Exception {
+    public void addJob(
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final String schedulingExpression,
+            final boolean canRunConcurrently)
+            throws Exception {
         this.scheduler.addJob(this.bundleId, null, name, job, config, schedulingExpression, canRunConcurrently);
     }
 
@@ -125,9 +128,13 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#addPeriodicJob(java.lang.String, java.lang.Object, java.util.Map, long, boolean)
      */
     @Override
-    public void addPeriodicJob(final String name, final Object job,
-            final Map<String, Serializable> config, final long period,
-            final boolean canRunConcurrently) throws Exception {
+    public void addPeriodicJob(
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final long period,
+            final boolean canRunConcurrently)
+            throws Exception {
         this.scheduler.addPeriodicJob(this.bundleId, null, name, job, config, period, canRunConcurrently);
     }
 
@@ -135,19 +142,23 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#addPeriodicJob(java.lang.String, java.lang.Object, java.util.Map, long, boolean, boolean)
      */
     @Override
-    public void addPeriodicJob(final String name, final Object job,
-            final Map<String, Serializable> config, final long period,
-            final boolean canRunConcurrently, final boolean startImmediate)
+    public void addPeriodicJob(
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final long period,
+            final boolean canRunConcurrently,
+            final boolean startImmediate)
             throws Exception {
-        this.scheduler.addPeriodicJob(this.bundleId, null, name, job, config, period, canRunConcurrently, startImmediate);
+        this.scheduler.addPeriodicJob(
+                this.bundleId, null, name, job, config, period, canRunConcurrently, startImmediate);
     }
 
     /**
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJob(java.lang.Object, java.util.Map)
      */
     @Override
-    public void fireJob(final Object job, final Map<String, Serializable> config)
-            throws Exception {
+    public void fireJob(final Object job, final Map<String, Serializable> config) throws Exception {
         this.scheduler.fireJob(this.bundleId, null, job, config);
     }
 
@@ -155,8 +166,8 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJob(java.lang.Object, java.util.Map, int, long)
      */
     @Override
-    public boolean fireJob(final Object job, final Map<String, Serializable> config,
-            final int times, final long period) {
+    public boolean fireJob(
+            final Object job, final Map<String, Serializable> config, final int times, final long period) {
         return this.scheduler.fireJob(this.bundleId, null, job, config, times, period);
     }
 
@@ -164,8 +175,8 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJobAt(java.lang.String, java.lang.Object, java.util.Map, java.util.Date)
      */
     @Override
-    public void fireJobAt(final String name, final Object job,
-            final Map<String, Serializable> config, final Date date) throws Exception {
+    public void fireJobAt(final String name, final Object job, final Map<String, Serializable> config, final Date date)
+            throws Exception {
         this.scheduler.fireJobAt(this.bundleId, null, name, job, config, date);
     }
 
@@ -173,8 +184,13 @@ public class SchedulerServiceFactory implements Scheduler {
      * @see org.apache.sling.commons.scheduler.Scheduler#fireJobAt(java.lang.String, java.lang.Object, java.util.Map, java.util.Date, int, long)
      */
     @Override
-    public boolean fireJobAt(final String name, final Object job,
-            final Map<String, Serializable> config, final Date date, final int times, final long period) {
+    public boolean fireJobAt(
+            final String name,
+            final Object job,
+            final Map<String, Serializable> config,
+            final Date date,
+            final int times,
+            final long period) {
         return this.scheduler.fireJobAt(this.bundleId, null, name, job, config, date, times, period);
     }
 

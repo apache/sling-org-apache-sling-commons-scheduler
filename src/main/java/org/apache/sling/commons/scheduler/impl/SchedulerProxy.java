@@ -1,18 +1,20 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.commons.scheduler.impl;
 
@@ -48,13 +50,12 @@ public class SchedulerProxy {
 
     private final String poolName;
 
-    public SchedulerProxy(final ThreadPoolManager manager,
-            final String pName) throws SchedulerException {
+    public SchedulerProxy(final ThreadPoolManager manager, final String pName) throws SchedulerException {
         // sanity null check
-        if ( manager == null ) {
+        if (manager == null) {
             throw new SchedulerException("Thread pool manager missing");
         }
-        if ( pName == null ) {
+        if (pName == null) {
             throw new SchedulerException("Thread pool name missing");
         }
 
@@ -75,27 +76,27 @@ public class SchedulerProxy {
 
             factory.createScheduler(name, runID, quartzPool, new RAMJobStore());
             // quartz does not provide a way to get the scheduler by name AND runID, so we have to iterate!
-            final Iterator<org.quartz.Scheduler> allSchedulersIter = factory.getAllSchedulers().iterator();
+            final Iterator<org.quartz.Scheduler> allSchedulersIter =
+                    factory.getAllSchedulers().iterator();
             org.quartz.Scheduler s = null;
-            while ( s == null && allSchedulersIter.hasNext() ) {
+            while (s == null && allSchedulersIter.hasNext()) {
                 final org.quartz.Scheduler current = allSchedulersIter.next();
-                if ( name.equals(current.getSchedulerName())
-                    && runID.equals(current.getSchedulerInstanceId()) ) {
+                if (name.equals(current.getSchedulerName()) && runID.equals(current.getSchedulerInstanceId())) {
                     s = current;
                 }
             }
-            if ( s == null ) {
+            if (s == null) {
                 throw new SchedulerException("Unable to find new scheduler with name " + name + " and run ID " + runID);
             }
 
             s.start();
-            if ( this.logger.isDebugEnabled() ) {
+            if (this.logger.isDebugEnabled()) {
                 this.logger.debug("{}for pool {} started.", PREFIX, poolName);
             }
             this.scheduler = s;
             succeeded = true;
         } finally {
-            if ( !succeeded) {
+            if (!succeeded) {
                 this.threadPoolManager.release(this.threadPool);
             }
         }
@@ -110,7 +111,7 @@ public class SchedulerProxy {
         } catch (SchedulerException e) {
             this.logger.debug("Exception during shutdown of scheduler.", e);
         }
-        if ( this.logger.isDebugEnabled() ) {
+        if (this.logger.isDebugEnabled()) {
             this.logger.debug("{}for pool {} stopped.", PREFIX, poolName);
         }
 

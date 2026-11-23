@@ -21,4 +21,3 @@
 package org.apache.sling.commons.scheduler;
 
 import org.osgi.annotation.versioning.Version;
-
